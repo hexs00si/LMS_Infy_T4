@@ -19,8 +19,13 @@ class AuthenticationService: ObservableObject {
         print("Sign-in successful for user: \(result.user.uid)")
         let uid = result.user.uid
         
-        // 2. Get user data from AuthUsers
+        // Debug: Print the path of the document being queried
+        print("Querying Firestore for document: authUsers/\(uid)")
+        
         let authDoc = try await db.collection("authUsers").document(uid).getDocument()
+        
+        // Debug: Print the document data
+        print("Document data: \(String(describing: authDoc.data()))")
         
         guard let authData = authDoc.data(),
               let userType = authData["userType"] as? String,
@@ -28,6 +33,9 @@ class AuthenticationService: ObservableObject {
               let isFirstLogin = authData["isFirstLogin"] as? Bool else {
             throw AuthError.invalidUserData
         }
+        
+        // Debug: Print the parsed user data
+        print("Parsed user data: userType = \(userTypeEnum), isFirstLogin = \(isFirstLogin)")
         
         // 3. If it's admin and first login, create admin document
         if userTypeEnum == .admin && isFirstLogin {

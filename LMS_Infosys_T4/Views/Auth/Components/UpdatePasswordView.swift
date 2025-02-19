@@ -23,7 +23,7 @@ struct UpdatePasswordView: View {
                     
                     SecureField("Enter new password", text: $viewModel.newPassword)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .onChange(of: viewModel.newPassword) { _ in
+                        .onChange(of: viewModel.newPassword) {
                             viewModel.evaluatePassword()
                         }
                     
