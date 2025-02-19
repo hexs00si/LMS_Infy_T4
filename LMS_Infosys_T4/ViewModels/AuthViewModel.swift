@@ -40,55 +40,44 @@ class AuthViewModel: ObservableObject {
         passwordCriteria.isValid && newPassword == confirmPassword
     }
     
-    // Staff Sign In Method
-    func staffSignIn() async {
-        // Reset state before sign in attempt
-        await MainActor.run {
-            isLoading = true
-            error = nil
-            isAuthenticated = false
-        }
-        
-        do {
-            // Attempt authentication
-            let user = try await authService.staffSignIn(email: email, password: password)
+    func signIn() async {
+            await MainActor.run {
+                isLoading = true
+                error = nil
+                isAuthenticated = false
+            }
             
-            // Update state on main thread
-            await MainActor.run {
-                print("✅ User authenticated successfully")
-                print("User Details: \(user)")
+            do {
+                let user = try await authService.signIn(email: email, password: password)
                 
-                // Update all relevant state properties
-                self.currentUser = user
-                self.isAuthenticated = true
-                self.showUpdatePassword = user.isFirstLogin
-                self.isLoading = false
-                
-                // Additional debugging
-                print("🔍 Authentication State:")
-                print("- User Type: \(user.userType.rawValue)")
-                print("- Is First Login: \(user.isFirstLogin)")
-                print("- isAuthenticated: \(self.isAuthenticated)")
-                print("- showUpdatePassword: \(self.showUpdatePassword)")
-                
-                // Explicitly notify observers of changes
-                self.objectWillChange.send()
-            }
-        } catch {
-            // Handle authentication errors
-            await MainActor.run {
-                print("❌ Authentication Failed: \(error.localizedDescription)")
-                
-                self.error = error.localizedDescription
-                self.isLoading = false
-                self.isAuthenticated = false
-                self.currentUser = nil
-                
-                // Explicitly notify observers of changes
-                self.objectWillChange.send()
+                await MainActor.run {
+                    print("✅ User authenticated successfully")
+                    print("User Details: \(user)")
+                    
+                    self.currentUser = user
+                    self.isAuthenticated = true
+                    self.showUpdatePassword = user.isFirstLogin
+                    self.isLoading = false
+                    
+                    print("🔍 Authentication State:")
+                    print("- User Type: \(user.userType.rawValue)")
+                    print("- Is First Login: \(user.isFirstLogin)")
+                    print("- isAuthenticated: \(self.isAuthenticated)")
+                    print("- showUpdatePassword: \(self.showUpdatePassword)")
+                    
+                    self.objectWillChange.send()
+                }
+            } catch {
+                await MainActor.run {
+                    print("❌ Authentication Failed: \(error.localizedDescription)")
+                    self.error = error.localizedDescription
+                    self.isLoading = false
+                    self.isAuthenticated = false
+                    self.currentUser = nil
+                    self.objectWillChange.send()
+                }
             }
         }
-    }
     
     // Update Password Method
     func updatePassword() async {
