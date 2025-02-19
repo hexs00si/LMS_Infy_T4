@@ -8,11 +8,56 @@
 import SwiftUI
 
 struct LibrariesView: View {
+    @StateObject private var viewModel = LibrariesViewModel()
+    @State private var showingAddLibrary = false
+    @State private var selectedLibrary: Library?
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            Group {
+                if viewModel.libraries.isEmpty {
+                    EmptyLibraryView()
+                } else {
+                    libraryList
+                }
+            }
+            .navigationTitle("Libraries")
+            .navigationBarItems(trailing: addButton)
+            .sheet(isPresented: $showingAddLibrary) {
+                AddLibraryView(viewModel: viewModel)
+            }
+            .sheet(item: $selectedLibrary) { library in
+                LibraryDetailView(library: library, viewModel: viewModel)
+            }
+        }
+    }
+    
+    private var libraryList: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(viewModel.libraries) { library in
+                    LibraryRowView(library: library) {
+                        selectedLibrary = library
+                    }
+                    .padding(.horizontal)
+                }
+            }
+            .padding(.vertical)
+        }
+        .background(Color(.systemGroupedBackground))
+    }
+    
+    private var addButton: some View {
+        Button(action: { showingAddLibrary = true }) {
+            Image(systemName: "plus")
+                .font(.system(size: 16, weight: .semibold))
+        }
     }
 }
 
-#Preview {
-    LibrariesView()
+// Preview provider
+struct LibrariesView_Previews: PreviewProvider {
+    static var previews: some View {
+        LibrariesView()
+    }
 }
