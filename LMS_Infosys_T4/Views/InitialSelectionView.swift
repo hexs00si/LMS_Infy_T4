@@ -4,30 +4,32 @@
 //
 //  Created by Shravan Rajput on 18/02/25.
 //
-
 import SwiftUI
 
 struct InitialSelectionView: View {
-    @State private var navigateToStaffLogin = false
-    @State private var navigateToUserLogin = false
+    @State private var navigateToLogin = false
+    @State private var isUser = false
     
     var body: some View {
         VStack(spacing: 30) {
-            // Library Icon
-            Image("books_stack")
+            
+            Image(systemName: "books.vertical")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 120, height: 120)
+                .frame(width: 200, height: 200)
+                .foregroundColor(.black)
             
+            // Welcome Text
             Text("Welcome to Library")
                 .font(.largeTitle)
-                .bold()
+                .fontWeight(.bold)
+                .foregroundColor(.black)
             
             Spacer()
             
-            // User Button
             Button(action: {
-                navigateToUserLogin = true
+                isUser = true
+                navigateToLogin = true
             }) {
                 Text("I'm a User")
                     .foregroundColor(.white)
@@ -37,9 +39,9 @@ struct InitialSelectionView: View {
                     .cornerRadius(10)
             }
             
-            // Staff Button
             Button(action: {
-                navigateToStaffLogin = true
+                isUser = false
+                navigateToLogin = true
             }) {
                 Text("I'm a Staff")
                     .foregroundColor(.white)
@@ -52,15 +54,12 @@ struct InitialSelectionView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 40)
         .navigationBarHidden(true)
-        .fullScreenCover(isPresented: $navigateToStaffLogin) {
-            StaffLoginView()
-        }
-        .fullScreenCover(isPresented: $navigateToUserLogin) {
-            UserLoginView()
+        .fullScreenCover(isPresented: $navigateToLogin) {
+            LoginView(isUser: $isUser)
         }
     }
 }
 
-#Preview{
+#Preview {
     InitialSelectionView()
 }

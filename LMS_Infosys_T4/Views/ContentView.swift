@@ -31,7 +31,7 @@ struct ContentView: View {
                         case .librarian:
                             LibrarianDashboardView()
                         case .member:
-                            UserDashboardView()
+                            MemberHomeView()
                         }
                     } else {
                         Text("❌ Error: User type is nil")
