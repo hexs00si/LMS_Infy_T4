@@ -93,6 +93,7 @@ struct LibraryDetailView: View {
                                 finePerDay: editedFinePerDay,
                                 maxBooksPerUser: editedMaxBooksPerUser
                             )
+                            dismiss()
                             isEditing = false
                         }
                     } else {

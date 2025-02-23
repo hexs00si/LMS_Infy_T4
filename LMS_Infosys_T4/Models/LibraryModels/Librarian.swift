@@ -7,6 +7,9 @@
 
 import Foundation
 import FirebaseFirestore
+import Swift
+
+
 
 //struct Librarian: Codable, Identifiable {
 //    @DocumentID var id: String?
@@ -27,20 +30,20 @@ import FirebaseFirestore
 //}
 
 
-struct Librarian: Identifiable {
-    let id: UUID
-    var name: String
-    var library: String
-    var email: String
-    var contactNumber: String
-    var image: String?
-    
-    init(id: UUID = UUID(), name: String, library: String, email: String, contactNumber: String, image: String? = nil) {
-        self.id = id
-        self.name = name
-        self.library = library
-        self.email = email
-        self.contactNumber = contactNumber
-        self.image = image
-    }
-}
+//struct Librarian: Identifiable {
+//    let id: UUID
+//    var name: String
+//    var library: String
+//    var email: String
+//    var contactNumber: String
+//    var image: String?
+//    
+//    init(id: UUID = UUID(), name: String, library: String, email: String, contactNumber: String, image: String? = nil) {
+//        self.id = id
+//        self.name = name
+//        self.library = library
+//        self.email = email
+//        self.contactNumber = contactNumber
+//        self.image = image
+//    }
+//}

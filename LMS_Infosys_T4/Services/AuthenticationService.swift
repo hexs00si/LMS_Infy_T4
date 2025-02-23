@@ -46,19 +46,19 @@ class AuthenticationService: ObservableObject {
                 let adminRef = db.collection("admins").document(uid)
                 batch.setData(adminData, forDocument: adminRef)
                 
-            case .librarian:
-                let librarianData: [String: Any] = [
-                    "uid": uid,
-                    "email": email,
-                    "name": "",
-                    "gender": "",
-                    "phoneNumber": "",
-                    "image": "",
-                    "joinDate": Date()
-                ]
-                let librarianRef = db.collection("librarians").document(uid)
-                batch.setData(librarianData, forDocument: librarianRef)
-                
+//            case .librarian:
+//                let librarianData: [String: Any] = [
+//                    "uid": uid,
+//                    "email": email,
+//                    "name": "",
+//                    "gender": "",
+//                    "phoneNumber": "",
+//                    "image": "",
+//                    "joinDate": Date()
+//                ]
+//                let librarianRef = db.collection("librarians").document(uid)
+//                batch.setData(librarianData, forDocument: librarianRef)
+//                
             case .member:
                 let userData: [String: Any] = [
                     "uid": uid,
@@ -72,6 +72,8 @@ class AuthenticationService: ObservableObject {
                 ]
                 let userRef = db.collection("users").document(uid)
                 batch.setData(userData, forDocument: userRef)
+            case .librarian:
+                print("dakki")
             }
             
             try await batch.commit()

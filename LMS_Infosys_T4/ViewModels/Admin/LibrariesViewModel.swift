@@ -20,22 +20,60 @@ class LibrariesViewModel: ObservableObject {
        fetchLibraries()
    }
    
-   func fetchLibraries() {
-       guard let adminId = Auth.auth().currentUser?.uid else { return }
-       
-       db.collection("libraries")
-           .whereField("adminuid", isEqualTo: adminId)
-           .addSnapshotListener { [weak self] snapshot, error in
-               if let error = error {
-                   self?.error = error.localizedDescription
-                   return
-               }
-               
-               self?.libraries = snapshot?.documents.compactMap { document in
-                   try? document.data(as: Library.self)
-               } ?? []
-           }
-   }
+//   func fetchLibraries() {
+//       guard let adminId = Auth.auth().currentUser?.uid else { return }
+//       
+//       db.collection("libraries")
+//           .whereField("adminuid", isEqualTo: adminId)
+//           .addSnapshotListener { [weak self] snapshot, error in
+//               if let error = error {
+//                   self?.error = error.localizedDescription
+//                   return
+//               }
+//               
+//               self?.libraries = snapshot?.documents.compactMap { document in
+//                   try? document.data(as: Library.self)
+//               } ?? []
+//           }
+//   }
+    
+    func fetchLibraries() {
+        guard let adminId = Auth.auth().currentUser?.uid else { return }
+        
+        let adminRef = db.collection("admins").document(adminId)
+        
+        adminRef.getDocument { [weak self] document, error in
+            if let error = error {
+                self?.error = error.localizedDescription
+                return
+            }
+            
+            guard let document = document, document.exists else { return }
+            
+            let data = document.data()
+            let createdLibraries = data?["createdLibraries"] as? [String] ?? []
+            
+            guard !createdLibraries.isEmpty else {
+                self?.libraries = []
+                return
+            }
+            
+            // Fetch libraries that match the IDs in createdLibraries
+            self?.db.collection("libraries")
+                .whereField(FieldPath.documentID(), in: createdLibraries)
+                .getDocuments { snapshot, error in
+                    if let error = error {
+                        self?.error = error.localizedDescription
+                        return
+                    }
+                    
+                    self?.libraries = snapshot?.documents.compactMap { document in
+                        try? document.data(as: Library.self)
+                    } ?? []
+                }
+        }
+    }
+
    
    func createLibrary(name: String, location: String, finePerDay: Float, maxBooksPerUser: Int) async {
        isLoading = true
