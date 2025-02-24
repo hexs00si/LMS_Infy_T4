@@ -240,42 +240,6 @@ struct AddSingleBookView: View {
             errorMessage = error.localizedDescription
         }
     }
-
-
-    
-//    private func saveBook() async {
-//        guard let yearInt = Int(publishYear) else { return }
-//        
-//        isLoading = true
-//        defer { isLoading = false }
-//        
-//        // Upload image and get URL first if needed
-//        // For now, we'll just use a placeholder URL
-//        let imageURL = "placeholder_url"
-//        
-//        let newBook = Book(
-//            libraryID: currentLibraryID,
-//            addedByLibrarian: currentLibrarianID,
-//            title: title,
-//            author: author,
-//            isbn: isbn,
-//            availabilityStatus: .available,
-//            publishYear: yearInt,
-//            genre: genre,
-//            coverImage: imageURL,
-//            description: description,
-////            edition: edition,
-//            quantity: quantity,
-//            availableCopies: quantity
-//        )
-//        
-//        do {
-//            try await viewModel.addBook(newBook)
-//            presentationMode.wrappedValue.dismiss()
-//        } catch {
-//            errorMessage = error.localizedDescription
-//        }
-//    }
     
     private func handleScan(result: Result<ScanResult, ScanError>) {
         showingScanner = false
