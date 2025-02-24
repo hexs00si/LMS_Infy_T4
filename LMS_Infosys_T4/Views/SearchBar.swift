@@ -24,7 +24,15 @@ struct SearchBar: View {
     }
 }
 
-func filterBooks(items: [Book], searchText: String) -> [Book] {
+func filterItems<T: Identifiable>(items: [T], searchText: String, keyPath: KeyPath<T, String>) -> [T] {
+    if searchText.isEmpty {
+        return items
+    } else {
+        return items.filter { $0[keyPath: keyPath].localizedCaseInsensitiveContains(searchText) }
+    }
+}
+
+func searchBooks(items: [Book], searchText: String) -> [Book] {
     if searchText.count < 2 {
         return items
     }

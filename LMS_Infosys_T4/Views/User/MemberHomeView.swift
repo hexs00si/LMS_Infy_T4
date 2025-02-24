@@ -15,12 +15,16 @@ struct MemberHomeView: View {
 
     let categories = ["All Books", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
     
-    // Filtered books based on selected category
     var filteredBooks: [Book] {
-        viewModel.books.filter { book in
-            (selectedCategory == "All Books" || book.genre.contains(selectedCategory)) &&
-            (searchText.isEmpty || book.title.lowercased().contains(searchText.lowercased()))
+        let categoryFilteredBooks = viewModel.books.filter { book in
+            selectedCategory == "All Books" || book.genre.contains(selectedCategory)
         }
+        
+        if !searchText.isEmpty {
+            return searchBooks(items: categoryFilteredBooks, searchText: searchText)
+        }
+        
+        return categoryFilteredBooks
     }
 
     var body: some View {
