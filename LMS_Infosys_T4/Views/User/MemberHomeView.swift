@@ -107,12 +107,23 @@ struct BookCard: View {
     var body: some View {
         NavigationLink(destination: BookDetailsView(book: book)) {
             VStack(alignment: .center) {
-                Image(systemName: book.coverImage ?? "book")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 150, height: 160)
-                    .clipped()
-                    .cornerRadius(12)
+                if let coverImage = book.getCoverImage() {
+                    // Display the actual cover image if available
+                    Image(uiImage: coverImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 150, height: 160)
+                        .clipped()
+                        .cornerRadius(12)
+                } else {
+                    // Fallback to system image if no cover image is available
+                    Image(systemName: "book")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150, height: 160)
+                        .foregroundColor(.gray)
+                        .cornerRadius(12)
+                }
                 
                 Text(book.title)
                     .font(.headline)
@@ -124,12 +135,12 @@ struct BookCard: View {
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Text("\(book.availabilityStatus)")
+                Text(book.availabilityStatus.description)  // Using the description property
                     .font(.caption)
                     .padding(4)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .background(book.availabilityStatus == AvailabilityStatus.available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                    .foregroundColor(book.availabilityStatus == AvailabilityStatus.available ? .green : .red)
+                    .background(book.availabilityStatus == .available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                    .foregroundColor(book.availabilityStatus == .available ? .green : .red)
                     .cornerRadius(6)
             }
             .padding()
@@ -138,9 +149,51 @@ struct BookCard: View {
             .cornerRadius(12)
             .shadow(radius: 2)
         }
-        .buttonStyle(PlainButtonStyle()) // Removes default navigation link styling
+        .buttonStyle(PlainButtonStyle())
     }
 }
+
+//
+//struct BookCard: View {
+//    let book: Book
+//    
+//    var body: some View {
+//        NavigationLink(destination: BookDetailsView(book: book)) {
+//            VStack(alignment: .center) {
+//                Image(systemName: book.coverImage ?? "book")
+//                    .resizable()
+//                    .scaledToFill()
+//                    .frame(width: 150, height: 160)
+//                    .clipped()
+//                    .cornerRadius(12)
+//                
+//                Text(book.title)
+//                    .font(.headline)
+//                    .lineLimit(2)
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                
+//                Text(book.author)
+//                    .font(.subheadline)
+//                    .foregroundColor(.gray)
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                
+//                Text("\(book.availabilityStatus)")
+//                    .font(.caption)
+//                    .padding(4)
+//                    .frame(maxWidth: .infinity, alignment: .center)
+//                    .background(book.availabilityStatus == AvailabilityStatus.available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+//                    .foregroundColor(book.availabilityStatus == AvailabilityStatus.available ? .green : .red)
+//                    .cornerRadius(6)
+//            }
+//            .padding()
+//            .frame(width: 170, height: 275)
+//            .background(Color.white)
+//            .cornerRadius(12)
+//            .shadow(radius: 2)
+//        }
+//        .buttonStyle(PlainButtonStyle()) // Removes default navigation link styling
+//    }
+//}
 
 struct MainTabView: View {
     init() {

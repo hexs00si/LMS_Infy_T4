@@ -24,10 +24,19 @@ struct Book: Identifiable, Codable {
     let genre: String
     let coverImage: String?
     let description: String
-    let edition: String?
+//    let edition: String?
     let quantity: Int
-    let availableCopies: String
+    let availableCopies: Int
     
+    // Add this function to decode base64 to UIImage
+    func getCoverImage() -> UIImage? {
+        guard let base64String = coverImage,
+              let imageData = Data(base64Encoded: base64String) else {
+            return nil
+        }
+        return UIImage(data: imageData)
+    }
+
     enum CodingKeys: String, CodingKey {
         case id
         case libraryID
@@ -40,7 +49,7 @@ struct Book: Identifiable, Codable {
         case genre
         case coverImage
         case description
-        case edition
+//        case edition
         case quantity
         case availableCopies
     }
@@ -141,51 +150,3 @@ class LibraryViewModel: ObservableObject {
             }
     }
 }
-
-//import SwiftUI
-
-
-//
-////struct Book: Identifiable, Codable {
-////    let id: UUID
-////    var isbn: String
-////    var title: String
-////    var author: String
-////    var publisher: String
-////    var year: String
-////    var genre: String?
-////    
-////    init(id: UUID = UUID(), isbn: String, title: String, author: String, publisher: String = "", year: String, genre: String? = nil) {
-////        self.id = id
-////        self.isbn = isbn
-////        self.title = title
-////        self.author = author
-////        self.publisher = publisher
-////        self.year = year
-////        self.genre = genre
-////    }
-////}
-//
-//
-//class LibraryViewModel: ObservableObject {
-//    @Published var books: [Book] = []
-//    @Published var recentActivities: [String] = []
-//    
-//    var totalBooks: Int { books.count }
-//    var booksIssued: Int = 89
-//    var dueReturns: Int = 12
-//    var newImports: Int = 45
-//    
-//    func addBook(_ book: Book) {
-//        books.append(book)
-//        recentActivities.insert("New Import: \(book.title)", at: 0)
-//    }
-//    
-////    func importBooks(from url: URL) {
-////        // CSV import logic would go here
-////        addBook(Book(isbn: "978-0-12345-678-9", 
-////                    title: "Sample Book", 
-////                    author: "Author Name",
-////                    year: "2024"))
-////    }
-//}

@@ -201,15 +201,22 @@ struct AddSingleBookView: View {
             }
     }
     
+    private func convertImageToBase64(_ image: UIImage) -> String? {
+        guard let imageData = image.jpegData(compressionQuality: 0.5) else { return nil }
+        return imageData.base64EncodedString()
+    }
+    
     private func saveBook() async {
         guard let yearInt = Int(publishYear) else { return }
         
         isLoading = true
         defer { isLoading = false }
         
-        // Upload image and get URL first if needed
-        // For now, we'll just use a placeholder URL
-        let imageURL = "placeholder_url"
+        // Convert image to base64 if available
+        var imageBase64: String? = nil
+        if let image = selectedImage {
+            imageBase64 = convertImageToBase64(image)
+        }
         
         let newBook = Book(
             libraryID: currentLibraryID,
@@ -220,11 +227,10 @@ struct AddSingleBookView: View {
             availabilityStatus: .available,
             publishYear: yearInt,
             genre: genre,
-            coverImage: imageURL,
+            coverImage: imageBase64,  // Now passing the base64 string
             description: description,
-            edition: edition,
             quantity: quantity,
-            availableCopies: String(quantity)
+            availableCopies: quantity
         )
         
         do {
@@ -234,6 +240,42 @@ struct AddSingleBookView: View {
             errorMessage = error.localizedDescription
         }
     }
+
+
+    
+//    private func saveBook() async {
+//        guard let yearInt = Int(publishYear) else { return }
+//        
+//        isLoading = true
+//        defer { isLoading = false }
+//        
+//        // Upload image and get URL first if needed
+//        // For now, we'll just use a placeholder URL
+//        let imageURL = "placeholder_url"
+//        
+//        let newBook = Book(
+//            libraryID: currentLibraryID,
+//            addedByLibrarian: currentLibrarianID,
+//            title: title,
+//            author: author,
+//            isbn: isbn,
+//            availabilityStatus: .available,
+//            publishYear: yearInt,
+//            genre: genre,
+//            coverImage: imageURL,
+//            description: description,
+////            edition: edition,
+//            quantity: quantity,
+//            availableCopies: quantity
+//        )
+//        
+//        do {
+//            try await viewModel.addBook(newBook)
+//            presentationMode.wrappedValue.dismiss()
+//        } catch {
+//            errorMessage = error.localizedDescription
+//        }
+//    }
     
     private func handleScan(result: Result<ScanResult, ScanError>) {
         showingScanner = false
