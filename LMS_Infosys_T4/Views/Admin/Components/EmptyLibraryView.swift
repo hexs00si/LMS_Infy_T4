@@ -1,37 +1,25 @@
-//
-//  EmptyLibraryView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 19/02/25.
-//
-
-import SwiftUI
-
 import SwiftUI
 
 struct EmptyLibraryView: View {
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 12) {
             Image(systemName: "books.vertical")
-                .font(.system(size: 60))
-                .foregroundColor(.gray.opacity(0.8))
+                .font(.system(size: 50))
+                .foregroundColor(.gray.opacity(0.5)) // Lighter for subtle effect
             
-            VStack(spacing: 8) {
-                Text("No Libraries Added Yet")
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(.primary)
-                
-                Text("Add your first library using the + button above")
-                    .font(.system(size: 15))
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-            }
+            Text("No Libraries Added Yet")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.primary)
+            
+            Text("Add your first library using the + button above")
+                .font(.system(size: 14))
+                .foregroundColor(.gray.opacity(0.7))
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
         }
-        .padding()
-        .background(Color(.systemGroupedBackground))
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Centering inside parent
     }
 }
-
 
 #Preview {
     EmptyLibraryView()

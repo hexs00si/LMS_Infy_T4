@@ -11,29 +11,16 @@
 		DB62D6412D64822400C8191E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB62D6402D64822400C8191E /* FirebaseAuth */; };
 		DB62D6432D64822400C8191E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DB62D6422D64822400C8191E /* FirebaseFirestore */; };
 		DB62D6912D64824200C8191E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DB62D6902D64824200C8191E /* FirebaseCore */; };
-		F06D66CB2D66E99F00FB468D /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = F06D66CA2D66E99F00FB468D /* CodeScanner */; };
+		DBE5A9492D6CE38C0023AB51 /* CodeScanner in Frameworks */ = {isa = PBXBuildFile; productRef = DBE5A9482D6CE38C0023AB51 /* CodeScanner */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		DB62D62C2D647FF100C8191E /* LMS_Infosys_T4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LMS_Infosys_T4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F0E113D42D683538002F8D8F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Models/LibraryModels/Librarian.swift,
-			);
-			target = DB62D62B2D647FF100C8191E /* LMS_Infosys_T4 */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB62D62E2D647FF100C8191E /* LMS_Infosys_T4 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				F0E113D42D683538002F8D8F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */,
-			);
 			path = LMS_Infosys_T4;
 			sourceTree = "<group>";
 		};
@@ -48,7 +35,7 @@
 				DB62D6412D64822400C8191E /* FirebaseAuth in Frameworks */,
 				DB62D6912D64824200C8191E /* FirebaseCore in Frameworks */,
 				DB62D6432D64822400C8191E /* FirebaseFirestore in Frameworks */,
-				F06D66CB2D66E99F00FB468D /* CodeScanner in Frameworks */,
+				DBE5A9492D6CE38C0023AB51 /* CodeScanner in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -103,7 +90,7 @@
 				DB62D6402D64822400C8191E /* FirebaseAuth */,
 				DB62D6422D64822400C8191E /* FirebaseFirestore */,
 				DB62D6902D64824200C8191E /* FirebaseCore */,
-				F06D66CA2D66E99F00FB468D /* CodeScanner */,
+				DBE5A9482D6CE38C0023AB51 /* CodeScanner */,
 			);
 			productName = LMS_Infosys_T4;
 			productReference = DB62D62C2D647FF100C8191E /* LMS_Infosys_T4.app */;
@@ -135,7 +122,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				DB62D63D2D64822400C8191E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				F06D66C92D66E99F00FB468D /* XCRemoteSwiftPackageReference "CodeScanner" */,
+				DBE5A9472D6CE38C0023AB51 /* XCRemoteSwiftPackageReference "CodeScanner" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DB62D62D2D647FF100C8191E /* Products */;
@@ -295,23 +282,20 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 8XXM3DZ2SJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need to access files.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.LMS-Infosys-T";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.example.LMS-Infosys-T4";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -331,23 +315,20 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 8XXM3DZ2SJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
-				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need to access files.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.example.LMS-Infosys-T";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.example.LMS-Infosys-T4";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -391,9 +372,9 @@
 				minimumVersion = 11.8.1;
 			};
 		};
-		F06D66C92D66E99F00FB468D /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
+		DBE5A9472D6CE38C0023AB51 /* XCRemoteSwiftPackageReference "CodeScanner" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/twostraws/CodeScanner.git";
+			repositoryURL = "https://github.com/twostraws/CodeScanner";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.5.2;
@@ -422,9 +403,9 @@
 			package = DB62D63D2D64822400C8191E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
 		};
-		F06D66CA2D66E99F00FB468D /* CodeScanner */ = {
+		DBE5A9482D6CE38C0023AB51 /* CodeScanner */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = F06D66C92D66E99F00FB468D /* XCRemoteSwiftPackageReference "CodeScanner" */;
+			package = DBE5A9472D6CE38C0023AB51 /* XCRemoteSwiftPackageReference "CodeScanner" */;
 			productName = CodeScanner;
 		};
 /* End XCSwiftPackageProductDependency section */
