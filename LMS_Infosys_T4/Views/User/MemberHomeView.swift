@@ -17,7 +17,7 @@ struct MemberHomeView: View {
     
     // Filtered books based on selected category
     var filteredBooks: [BookDetails] {
-        if selectedCategory == "All Books" {
+        if selectedCategory == "All Books" || selectedCategory == "All" {
             return BookData.books.filter { book in
                 // Filter by searchText (case-insensitive)
                 searchText.isEmpty || book.title.lowercased().contains(searchText.lowercased())
@@ -78,7 +78,7 @@ struct GenreFilterView: View {
     @Binding var selectedCategory: String
     @Environment(\.presentationMode) var presentationMode
     
-    let genres = ["All", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
+    let genres = ["All Books", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
     
     var body: some View {
         NavigationView {

@@ -4,14 +4,14 @@
 //
 //  Created by Gaganveer Bawa on 23/02/25.
 //
-
-
 // AddLibrarianView.swift
+
 import SwiftUI
 
 struct AddLibrarianView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: LibrarianViewModel
+    var onLibrarianAdded: (() -> Void)?
     
     @State private var email = ""
     @State private var name = ""
@@ -67,6 +67,7 @@ struct AddLibrarianView: View {
                 leading: Button("Cancel") { dismiss() },
                 trailing: Button("Save") {
                     saveLibrarian()
+                    dismiss()
                 }
                 .disabled(!isFormValid)
             )
@@ -101,6 +102,7 @@ struct AddLibrarianView: View {
                 }
             } catch {
                 // Error handling is already done in viewModel
+                print(error)
             }
         }
     }

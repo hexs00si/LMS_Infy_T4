@@ -5,27 +5,13 @@
 //  Created by Shravan Rajput on 18/02/25.
 //
 
-//import SwiftUI
-//
-//struct LibrariansView: View {
-//    var body: some View {
-//        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-//    }
-//}
-//
-//#Preview {
-//    LibrariansView()
-//}
-
-
-// LibrariansView.swift
 import SwiftUI
 
 struct LibrariansView: View {
     @StateObject private var viewModel = LibrarianViewModel()
     @State private var showingAddLibrarian = false
     @State private var selectedLibrarian: Librarian?
-    
+
     var body: some View {
         NavigationView {
             Group {
@@ -48,21 +34,27 @@ struct LibrariansView: View {
             }
             .navigationTitle("Librarians")
             .toolbar {
-                Button(action: { showingAddLibrarian = true }) {
+                Button(action: {
+                    showingAddLibrarian = true
+                }) {
                     Image(systemName: "plus")
                 }
             }
             .sheet(isPresented: $showingAddLibrarian) {
-                AddLibrarianView(viewModel: viewModel)
+                AddLibrarianView(viewModel: viewModel) {
+                    viewModel.fetchLibrarians() // Refresh the list when a librarian is added
+                }
             }
             .sheet(item: $selectedLibrarian) { librarian in
                 LibrarianDetailView(librarian: librarian, viewModel: viewModel)
+            }
+            .onAppear {
+                viewModel.fetchLibrarians() // Ensure data is up-to-date when the view appears
             }
         }
     }
 }
 
-// LibrarianRowView.swift
 struct LibrarianRowView: View {
     let librarian: Librarian
     

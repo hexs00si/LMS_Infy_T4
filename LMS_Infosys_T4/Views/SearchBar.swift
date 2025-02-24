@@ -24,10 +24,27 @@ struct SearchBar: View {
     }
 }
 
-func filterItems<T: Identifiable>(items: [T], searchText: String, keyPath: KeyPath<T, String>) -> [T] {
-    if searchText.isEmpty {
+func filterBooks(items: [Book], searchText: String) -> [Book] {
+    if searchText.count < 2 {
         return items
-    } else {
-        return items.filter { $0[keyPath: keyPath].localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    let searchText = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    
+    return items.filter { book in
+        
+        let titleMatch = book[keyPath: \Book.title].localizedCaseInsensitiveContains(searchText)
+        let authorMatch = book[keyPath: \Book.author].localizedCaseInsensitiveContains(searchText)
+        let genreMatch = book[keyPath: \Book.genre].localizedCaseInsensitiveContains(searchText)
+        
+        // Special handling for year
+        let yearMatch: Bool
+        if let searchYear = Int(searchText) {
+            yearMatch = book[keyPath: \Book.publishYear] == searchYear
+        } else {
+            yearMatch = false
+        }
+        
+        return titleMatch || authorMatch || genreMatch || yearMatch
     }
 }

@@ -4,10 +4,9 @@
 //
 //  Created by Gaganveer Bawa on 23/02/25.
 //
-
-
-
 // LibrarianViewModel.swift
+//
+
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
@@ -185,9 +184,6 @@ class LibrarianViewModel: ObservableObject {
             
             // Delete Auth user
 //            try await Auth.auth().deleteUser(withEmail: librarian.email)
-            if let user = Auth.auth().currentUser {
-                    try await user.delete()
-                }
             
             try await batch.commit()
         } catch {
