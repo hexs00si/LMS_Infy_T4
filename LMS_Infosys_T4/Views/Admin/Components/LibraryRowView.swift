@@ -1,11 +1,5 @@
-//
-//  LibraryRowView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 19/02/25.
-//
-
 import SwiftUI
+import MapKit
 
 struct LibraryRowView: View {
     let library: Library
@@ -13,32 +7,51 @@ struct LibraryRowView: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 16) {
-                // Header with Library Name
-                Text(library.name)
-                    .font(.system(size: 18, weight: .semibold))
-                
-                // Location with icon
-                HStack(spacing: 8) {
-                    Image(systemName: "location.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gray)
-                    Text(library.location)
-                        .font(.system(size: 15))
-                        .foregroundColor(.gray)
+            HStack(alignment: .top, spacing: 12) {
+                // Library details
+                VStack(alignment: .leading, spacing: 12) {
+                    // Header with Library Name
+                    Text(library.name)
+                        .font(.system(size: 18, weight: .semibold))
+                    
+                    // Location with icon
+                    HStack(spacing: 8) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                        Text(library.location)
+                            .font(.system(size: 15))
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                    }
+                    
+                    Spacer()
+                    
+                    // Footer with Date
+                    HStack {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray)
+                        Text(library.lastUpdated, style: .date)
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Divider()
-                
-                // Footer with Date
-                HStack {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 12))
-                        .foregroundColor(.gray)
-                    Text(library.lastUpdated, style: .date)
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray)
+                // Map preview
+                Map(coordinateRegion: .constant(MKCoordinateRegion(
+                    center: library.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                )), interactionModes: [], annotationItems: [MapAnnotationItem(coordinate: library.coordinate)]) { item in
+                    MapMarker(coordinate: item.coordinate, tint: .red)
                 }
+                .frame(width: 80, height: 80)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                )
             }
             .padding(.vertical, 16)
             .padding(.horizontal, 20)

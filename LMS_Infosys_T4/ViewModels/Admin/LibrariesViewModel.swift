@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import CoreLocation
 
 class LibrariesViewModel: ObservableObject {
    @Published var libraries: [Library] = []
@@ -69,7 +70,7 @@ class LibrariesViewModel: ObservableObject {
        }
    }
 
-   func createLibrary(name: String, location: String, finePerDay: Float, maxBooksPerUser: Int) async {
+   func createLibrary(name: String, location: String, latitude: Double, longitude: Double, finePerDay: Float, maxBooksPerUser: Int) async {
        await MainActor.run {
            isLoading = true
            error = nil
@@ -85,6 +86,8 @@ class LibrariesViewModel: ObservableObject {
                adminuid: adminId,
                name: name,
                location: location,
+               latitude: latitude,
+               longitude: longitude,
                maxBooksPerUser: maxBooksPerUser,
                loanDuration: 14, // Default 2 weeks
                finePerDay: finePerDay,
@@ -152,7 +155,7 @@ class LibrariesViewModel: ObservableObject {
        }
    }
     
-   func updateLibrary(_ library: Library, name: String, location: String, finePerDay: Float, maxBooksPerUser: Int) async {
+   func updateLibrary(_ library: Library, name: String, location: String, latitude: Double, longitude: Double, finePerDay: Float, maxBooksPerUser: Int) async {
        guard let libraryId = library.id else { return }
        
        await MainActor.run {
@@ -166,6 +169,8 @@ class LibrariesViewModel: ObservableObject {
                adminuid: library.adminuid,
                name: name,
                location: location,
+               latitude: latitude,
+               longitude: longitude,
                maxBooksPerUser: maxBooksPerUser,
                loanDuration: library.loanDuration,
                finePerDay: finePerDay,
