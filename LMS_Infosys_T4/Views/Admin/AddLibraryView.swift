@@ -10,6 +10,7 @@ struct AddLibraryView: View {
     @State private var customLocation = ""
     @State private var finePerDay: Double = 1.0
     @State private var maxBooksPerUser = 5
+    @State private var loanDuration = 14
     @State private var showLibrarianSelection = false
     @State private var showLocationPicker = false
     
@@ -60,7 +61,7 @@ struct AddLibraryView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
                 
-                Section {
+                Section(header: Text("CONFIGURATION")) {
                     HStack {
                         Text("₹")
                         TextField("", value: $finePerDay, format: .number)
@@ -71,6 +72,9 @@ struct AddLibraryView: View {
                     }
                     
                     Stepper("Maximum Books: \(maxBooksPerUser)", value: $maxBooksPerUser, in: 1...20)
+                    
+                    // Added loan duration configuration
+                    Stepper("Loan Duration: \(loanDuration) days", value: $loanDuration, in: 1...60)
                 }
                 
                 Section {
@@ -121,7 +125,8 @@ struct AddLibraryView: View {
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude,
                 finePerDay: Float(finePerDay),
-                maxBooksPerUser: maxBooksPerUser
+                maxBooksPerUser: maxBooksPerUser,
+                loanDuration: loanDuration // Add the loan duration parameter
             )
             dismiss()
         }

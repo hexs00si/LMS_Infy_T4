@@ -13,6 +13,8 @@ struct LibraryDetailView: View {
     @State private var editedName: String
     @State private var editedFinePerDay: Float
     @State private var editedMaxBooksPerUser: Int
+    @State private var editedLoanDuration: Int
+    @State private var editedIsActive: Bool
     @State private var showLocationPicker = false
     
     // Map related states
@@ -26,6 +28,8 @@ struct LibraryDetailView: View {
         _editedName = State(initialValue: library.name)
         _editedFinePerDay = State(initialValue: library.finePerDay)
         _editedMaxBooksPerUser = State(initialValue: library.maxBooksPerUser)
+        _editedLoanDuration = State(initialValue: library.loanDuration)
+        _editedIsActive = State(initialValue: library.isActive)
         _selectedCoordinate = State(initialValue: library.coordinate)
         _locationName = State(initialValue: "")
         
@@ -82,7 +86,16 @@ struct LibraryDetailView: View {
                         .buttonStyle(PlainButtonStyle())
                     } else {
                         LabeledContent("Name", value: library.name)
-                        LabeledContent("Location", value: library.location)
+                        
+                        // Display location details - either map location, custom location, or both
+                        if library.location.contains(",") {
+                            LabeledContent("Map Location", value: library.location)
+                        } else if !library.location.isEmpty {
+                            LabeledContent("Custom Location", value: library.location)
+                        }
+                        
+                        // Show coordinates
+                        LabeledContent("Coordinates", value: String(format: "%.6f, %.6f", library.latitude, library.longitude))
                         
                         // Show map in non-editing mode
                         Map(coordinateRegion: .constant(MKCoordinateRegion(
@@ -106,7 +119,11 @@ struct LibraryDetailView: View {
                             Text("/day")
                                 .foregroundColor(.gray)
                         }
+                        
                         Stepper("Max Books: \(editedMaxBooksPerUser)", value: $editedMaxBooksPerUser, in: 1...20)
+                        
+                        // Add loan duration configuration
+                        Stepper("Loan Duration: \(editedLoanDuration) days", value: $editedLoanDuration, in: 1...60)
                     } else {
                         LabeledContent("Fine Per Day", value: "₹\(String(format: "%.2f", library.finePerDay))")
                         LabeledContent("Max Books Per User", value: "\(library.maxBooksPerUser)")
@@ -116,7 +133,11 @@ struct LibraryDetailView: View {
                 }
                 
                 Section(header: Text("STATUS")) {
-                    LabeledContent("Active", value: library.isActive ? "Yes" : "No")
+                    if isEditing {
+                        Toggle("Active", isOn: $editedIsActive)
+                    } else {
+                        LabeledContent("Active", value: library.isActive ? "Yes" : "No")
+                    }
                     LabeledContent("Last Updated", value: library.lastUpdated.formatted(date: .long, time: .shortened))
                 }
                 
@@ -181,15 +202,24 @@ struct LibraryDetailView: View {
         let coordinates = selectedCoordinate ?? library.coordinate
         
         Task {
-            await viewModel.updateLibrary(
-                library,
+            // Create a temporary updated library with all the edited values
+            let updatedLibrary = Library(
+                id: library.id,
+                adminuid: library.adminuid,
                 name: editedName,
-                location: finalLocation,
+                location: finalLocation.isEmpty ? library.location : finalLocation,
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude,
+                maxBooksPerUser: editedMaxBooksPerUser,
+                loanDuration: editedLoanDuration,
                 finePerDay: editedFinePerDay,
-                maxBooksPerUser: editedMaxBooksPerUser
+                totalBooks: library.totalBooks,
+                lastUpdated: Date(),
+                isActive: editedIsActive
             )
+            
+            // Update the library using the complete object to ensure all fields are updated
+            await viewModel.updateLibraryWithFullObject(updatedLibrary)
             isEditing = false
             dismiss()
         }

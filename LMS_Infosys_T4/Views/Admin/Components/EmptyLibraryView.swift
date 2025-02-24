@@ -2,22 +2,20 @@ import SwiftUI
 
 struct EmptyLibraryView: View {
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 20) {
             Image(systemName: "books.vertical")
-                .font(.system(size: 50))
-                .foregroundColor(.gray.opacity(0.5)) // Lighter for subtle effect
+                .font(.system(size: 70))
+                .foregroundColor(.gray)
             
-            Text("No Libraries Added Yet")
-                .font(.system(size: 18, weight: .semibold))
-                .foregroundColor(.primary)
+            Text("No Libraries")
+                .font(.title2)
+                .fontWeight(.bold)
             
-            Text("Add your first library using the + button above")
-                .font(.system(size: 14))
-                .foregroundColor(.gray.opacity(0.7))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
+            Text("Tap + to add your first library")
+                .foregroundColor(.secondary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // Centering inside parent
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
     }
 }
 

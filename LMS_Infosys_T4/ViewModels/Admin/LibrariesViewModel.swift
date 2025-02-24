@@ -70,7 +70,7 @@ class LibrariesViewModel: ObservableObject {
        }
    }
 
-   func createLibrary(name: String, location: String, latitude: Double, longitude: Double, finePerDay: Float, maxBooksPerUser: Int) async {
+   func createLibrary(name: String, location: String, latitude: Double, longitude: Double, finePerDay: Float, maxBooksPerUser: Int, loanDuration: Int) async {
        await MainActor.run {
            isLoading = true
            error = nil
@@ -89,7 +89,7 @@ class LibrariesViewModel: ObservableObject {
                latitude: latitude,
                longitude: longitude,
                maxBooksPerUser: maxBooksPerUser,
-               loanDuration: 14, // Default 2 weeks
+               loanDuration: loanDuration, // Use the provided loan duration
                finePerDay: finePerDay,
                totalBooks: 0,
                lastUpdated: Date(),
@@ -194,4 +194,97 @@ class LibrariesViewModel: ObservableObject {
            }
        }
    }
+   
+   // Add a new function to update just the active status
+   func updateLibraryActiveStatus(_ library: Library, isActive: Bool) async {
+       guard let libraryId = library.id else { return }
+       
+       do {
+           await MainActor.run {
+               self.isLoading = true
+           }
+           
+           try await db.collection("libraries").document(libraryId).updateData([
+               "isActive": isActive,
+               "lastUpdated": Date()
+           ])
+           
+           await MainActor.run {
+               self.isLoading = false
+               self.fetchLibraries()
+           }
+       } catch {
+           await MainActor.run {
+               self.error = error.localizedDescription
+               self.isLoading = false
+           }
+       }
+   }
+    func updateLibraryWithLoanDuration(_ library: Library, name: String, location: String,
+                                latitude: Double, longitude: Double, finePerDay: Float,
+                                maxBooksPerUser: Int, loanDuration: Int) async {
+        guard let libraryId = library.id else { return }
+        
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
+        
+        do {
+            let updatedLibrary = Library(
+                id: library.id,
+                adminuid: library.adminuid,
+                name: name,
+                location: location,
+                latitude: latitude,
+                longitude: longitude,
+                maxBooksPerUser: maxBooksPerUser,
+                loanDuration: loanDuration, // Update with the edited loan duration
+                finePerDay: finePerDay,
+                totalBooks: library.totalBooks,
+                lastUpdated: Date(),
+                isActive: library.isActive
+            )
+            
+            try await db.collection("libraries").document(libraryId).setData(from: updatedLibrary)
+            
+            // Fetch the updated libraries after updating
+            await MainActor.run {
+                self.isLoading = false
+                // Call fetchLibraries on the main thread
+                self.fetchLibraries()
+            }
+        } catch {
+            await MainActor.run {
+                self.error = error.localizedDescription
+                self.isLoading = false
+            }
+        }
+    }
+    
+    func updateLibraryWithFullObject(_ library: Library) async {
+        guard let libraryId = library.id else { return }
+        
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
+        
+        do {
+            // Use setData(from:) to update the entire library object
+            try await db.collection("libraries").document(libraryId).setData(from: library)
+            
+            // Fetch the updated libraries after updating
+            await MainActor.run {
+                self.isLoading = false
+                // Call fetchLibraries on the main thread
+                self.fetchLibraries()
+            }
+        } catch {
+            await MainActor.run {
+                self.error = error.localizedDescription
+                self.isLoading = false
+            }
+        }
+    }
 }

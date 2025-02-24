@@ -1,10 +1,3 @@
-//
-//  LibrariesView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import SwiftUI
 
 struct LibrariesView: View {
@@ -15,7 +8,9 @@ struct LibrariesView: View {
     var body: some View {
         NavigationView {
             Group {
-                if viewModel.libraries.isEmpty {
+                if viewModel.isLoading {
+                    ProgressView("Loading libraries...")
+                } else if viewModel.libraries.isEmpty {
                     EmptyLibraryView()
                 } else {
                     libraryList
@@ -29,6 +24,15 @@ struct LibrariesView: View {
             .sheet(item: $selectedLibrary) { library in
                 LibraryDetailView(library: library, viewModel: viewModel)
             }
+            .overlay(
+                Group {
+                    if let error = viewModel.error {
+                        ErrorBanner(message: error) {
+                            viewModel.error = nil
+                        }
+                    }
+                }
+            )
         }
     }
     
@@ -36,7 +40,10 @@ struct LibrariesView: View {
         ScrollView {
             LazyVStack(spacing: 16) {
                 ForEach(viewModel.libraries) { library in
-                    LibraryRowView(library: library) {
+                    LibraryRowView(
+                        library: library,
+                        viewModel: viewModel
+                    ) {
                         selectedLibrary = library
                     }
                     .padding(.horizontal)
@@ -45,6 +52,9 @@ struct LibrariesView: View {
             .padding(.vertical)
         }
         .background(Color(.systemGroupedBackground))
+        .refreshable {
+            viewModel.fetchLibraries()
+        }
     }
     
     private var addButton: some View {
@@ -54,6 +64,35 @@ struct LibrariesView: View {
         }
     }
 }
+
+struct ErrorBanner: View {
+    let message: String
+    let dismiss: () -> Void
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.white)
+                Text(message)
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: dismiss) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.white)
+                }
+            }
+            .padding()
+            .background(Color.red)
+            .cornerRadius(8)
+            .padding()
+            
+            Spacer()
+        }
+    }
+}
+
+
 
 // Preview provider
 struct LibrariesView_Previews: PreviewProvider {
