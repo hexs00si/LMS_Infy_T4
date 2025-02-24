@@ -105,7 +105,7 @@ struct BookCard: View {
     let book: Book
     
     var body: some View {
-        NavigationLink(destination: BookDetailsView(book: book)) {
+        NavigationLink(destination: BookDetailsView(book: book, viewModel: LibraryViewModel())) {
             VStack(alignment: .center) {
                 if let coverImage = book.getCoverImage() {
                     // Display the actual cover image if available
@@ -221,9 +221,9 @@ struct MainTabView: View {
                     Label("Bookshelf", systemImage: "books.vertical.fill")
                 }
 
-            Text("Bookmarks")
+            IssuedBooksHistoryView()
                 .tabItem {
-                    Label("Bookmarks", systemImage: "bookmark.fill")
+                    Label("Issue Books", systemImage: "book.closed")
                 }
 
             Text("Profile")

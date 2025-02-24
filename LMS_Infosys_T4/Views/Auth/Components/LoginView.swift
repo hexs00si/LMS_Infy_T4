@@ -148,7 +148,7 @@ struct LoginView: View {
         if let userType = viewModel.currentUser?.userType {
             switch userType {
             case .member:
-                MemberHomeView()
+                MainTabView()
             case .admin:
                 AdminDashboardView()
             case .librarian:

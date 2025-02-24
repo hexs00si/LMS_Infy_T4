@@ -26,25 +26,16 @@ struct ReserveView: View {
         BookReservation(name: "Learning Python", author: "Mark Lutz", queue: "Queue #3 • Student", issueDate: "Jan 13, 2024", status: "Reserved", imageName: "book.fill")
     ]
     
-    var filteredReservations: [BookReservation] {
-        if searchText.isEmpty {
-            return reservations
-        } else {
-            return reservations.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-        }
-    }
-    
     var body: some View {
         NavigationStack {
             List {
-                Section(header: Text("Current Reservations (\(filteredReservations.count))").font(.headline)) {
-                    ForEach(filteredReservations) { book in
+                Section(header: Text("Current Reservations (\(reservations.count))").font(.headline)) {
+                    ForEach(reservations) { book in
                         BookReservationCard(book: book)
                     }
                 }
             }
             .listStyle(.insetGrouped)
-            .searchable(text: $searchText, prompt: "Search by book title or author")
             .refreshable {
                 // Simulate data refresh (You can replace this with real API fetching)
                 await Task.sleep(1_000_000_000)

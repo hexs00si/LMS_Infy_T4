@@ -1,3 +1,11 @@
+//
+//  IssueBookView.swift
+//  LMS_Infosys_T4
+//
+//  Created by Dakshdeep Singh on 24/02/25.
+//
+
+
 import SwiftUI
 import CodeScanner
 import Firebase
@@ -11,9 +19,6 @@ struct IssueBookView: View {
     @State private var title = ""
     @State private var author = ""
     @State private var isbn = ""
-    @State private var publishYear = ""
-    @State private var genre = ""
-    @State private var description = ""
     @State private var coverImageURL = ""
     @State private var availableCopies = 0
     
@@ -64,20 +69,12 @@ struct IssueBookView: View {
                     ReadOnlyTextField(label: "Title", text: title)
                     ReadOnlyTextField(label: "Author", text: author)
                     ReadOnlyTextField(label: "ISBN", text: isbn)
-                    ReadOnlyTextField(label: "Publication Year", text: publishYear)
-                    ReadOnlyTextField(label: "Genre", text: genre)
-                    ReadOnlyTextField(label: "Available Copies", text: "\(availableCopies)")
-                }
-                
-                // Description Section
-                Section(header: Text("Description").textCase(.uppercase)) {
-                    Text(description.isEmpty ? "No description available." : description)
-                        .font(.body)
-                        .foregroundColor(description.isEmpty ? .gray : .primary)
                 }
             }
             .navigationTitle("Issue Book")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(leading: Button("Cancel") { presentationMode.wrappedValue.dismiss() },
+                                trailing: Button("Issue") { issueBook() }.disabled(bookID.isEmpty))
             .sheet(isPresented: $showingScanner) {
                 CodeScannerView(codeTypes: [.qr], completion: handleScan)
             }
@@ -110,9 +107,6 @@ struct IssueBookView: View {
                     title = data?["title"] as? String ?? ""
                     author = data?["author"] as? String ?? ""
                     isbn = data?["isbn"] as? String ?? ""
-                    publishYear = "\(data?["publishYear"] as? Int ?? 0)"
-                    genre = data?["genre"] as? String ?? ""
-                    description = data?["description"] as? String ?? ""
                     availableCopies = data?["availableCopies"] as? Int ?? 0
                     coverImageURL = data?["coverImage"] as? String ?? ""
                 } else {
@@ -132,6 +126,10 @@ struct IssueBookView: View {
             errorMessage = "Scanning failed"
         }
     }
+    
+    private func issueBook() {
+        // Implement book issue logic here
+    }
 }
 
 // Read-Only Text Field for Displaying Book Details
@@ -140,12 +138,12 @@ struct ReadOnlyTextField: View {
     let text: String
     
     var body: some View {
-        HStack {
+        VStack(alignment: .leading) {
             Text(label + ":")
                 .foregroundColor(.gray)
-            Spacer()
             Text(text.isEmpty ? "-" : text)
-                .multilineTextAlignment(.trailing)
+                .lineLimit(nil)
+                .multilineTextAlignment(.leading)
         }
     }
 }

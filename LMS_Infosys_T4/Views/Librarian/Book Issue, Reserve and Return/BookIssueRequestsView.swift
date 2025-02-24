@@ -13,17 +13,6 @@ struct BookIssueRequestsView: View {
     
     var body: some View {
         VStack {
-            // Header Section
-            HStack {
-                Image(systemName: "books.vertical.fill")
-                    .foregroundColor(.blue)
-                Text("Library Management")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                Spacer()
-            }
-            .padding()
-            
             // Segmented Picker
             Picker("Library Actions", selection: $selectedSegment) {
                 ForEach(0..<segments.count, id: \.self) { index in
@@ -47,8 +36,7 @@ struct BookIssueRequestsView: View {
             }
             .animation(.easeInOut, value: selectedSegment)
         }
-        .navigationTitle("Library")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Requests")
     }
 }
 

@@ -1,5 +1,24 @@
+//
+//  IssuedBooksHistoryView.swift
+//  LMS_Infosys_T4
+//
+//  Created by Dakshdeep Singh on 24/02/25.
+//
+
+
 import SwiftUI
 import Firebase
+
+struct IssuedBook: Identifiable {
+    let id: String
+    let bookID: String
+    let title: String
+    let author: String
+    let isbn: String
+    let coverImageURL: String
+    let isReturned: Bool
+}
+
 
 struct IssuedBooksHistoryView: View {
     @State private var issuedBooks: [IssuedBook] = []
@@ -86,14 +105,4 @@ struct IssuedBooksHistoryView: View {
             }
         }
     }
-}
-
-struct IssuedBook: Identifiable {
-    let id: String
-    let bookID: String
-    let title: String
-    let author: String
-    let isbn: String
-    let coverImageURL: String
-    let isReturned: Bool
 }
