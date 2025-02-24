@@ -48,7 +48,6 @@ class LibrarianViewModel: ObservableObject {
     }
     
     func fetchLibrarians() {
-
         db.collection("librarians")
             .addSnapshotListener { [weak self] snapshot, error in
                 if let error = error {

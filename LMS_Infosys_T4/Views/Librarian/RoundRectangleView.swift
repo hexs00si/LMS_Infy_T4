@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct StatCard: View {
+struct RoundRectangleView: View {
     let title: String
     let value: String
     let color: Color

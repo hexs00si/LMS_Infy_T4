@@ -8,53 +8,53 @@
 
 import Foundation
 import FirebaseFirestore
-
-struct BookDetail { // For fetching the book details from the DB
-    let isbn: Int
-    let title: String
-    let author: String
-    let availabilityStatus: Bool
-    let coverImage: String?
-    let availableCopies: Int
-    let description: String
-    let genre: String
-    let libraryId: Int
-    let publishYear: Int
-    let pageCount: Int
-    let quantity: Int
-}
-
-struct BookDetails: Identifiable {
-    let id = UUID()
-    let title: String
-    let author: String
-    let image: String
-    let status: String
-    let category: [String]
-    let rating: Double
-    let reviews: Int
-    let isbn: String
-    let publisher: String
-    let publishedDate: String
-    let description: String
-}
-
-struct Book: Identifiable { // To add new book to the DB
-    let id: String               // bookID in schema
-    let libraryID: String
-    let addedByLibrarian: String
-    let title: String
-    let author: String
-    let isbn: String
-    let availabilityStatus: AvailabilityStatus
-    let publishYear: Int
-    let genre: String
-//    let edition: String
-    let coverImage: String
-    let description: String
-    let quantity: Int
-    let availableCopies: String
-}
+//
+//struct BookDetail { // For fetching the book details from the DB
+//    let isbn: Int
+//    let title: String
+//    let author: String
+//    let availabilityStatus: Bool
+//    let coverImage: String?
+//    let availableCopies: Int
+//    let description: String
+//    let genre: String
+//    let libraryId: Int
+//    let publishYear: Int
+//    let pageCount: Int
+//    let quantity: Int
+//}
+//
+//struct BookDetails: Identifiable {
+//    let id = UUID()
+//    let title: String
+//    let author: String
+//    let image: String
+//    let status: String
+//    let category: [String]
+//    let rating: Double
+//    let reviews: Int
+//    let isbn: String
+//    let publisher: String
+//    let publishedDate: String
+//    let description: String
+//}
+//
+//struct Book: Identifiable { // To add new book to the DB
+//    let id: String               // bookID in schema
+//    let libraryID: String
+//    let addedByLibrarian: String
+//    let title: String
+//    let author: String
+//    let isbn: String
+//    let availabilityStatus: AvailabilityStatus
+//    let publishYear: Int
+//    let genre: String
+////    let edition: String
+//    let coverImage: String
+//    let description: String
+//    let quantity: Int
+//    let availableCopies: String
+//}
 
 //struct Book: Identifiable, Codable {
 //    @DocumentID var id: String?

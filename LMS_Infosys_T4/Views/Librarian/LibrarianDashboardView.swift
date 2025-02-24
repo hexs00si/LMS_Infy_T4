@@ -20,10 +20,14 @@ struct LibrarianDashboardView: View {
                             GridItem(.flexible()),
                             GridItem(.flexible())
                         ], spacing: 15) {
-                            StatCard(title: "Total Books", value: "\(viewModel.totalBooks)", color: .blue)
-                            StatCard(title: "Books Issued", value: "\(viewModel.booksIssued)", color: .green)
-                            StatCard(title: "Due Returns", value: "\(viewModel.dueReturns)", color: .orange)
-                            StatCard(title: "New Imports", value: "\(viewModel.newImports)", color: .purple)
+                            RoundRectangleView(title: "Total Books", value: "\(1)", color: .blue)
+                            RoundRectangleView(title: "Books Issued", value: "\(2)", color: .green)
+                            RoundRectangleView(title: "Due Returns", value: "\(3)", color: .orange)
+                            RoundRectangleView(title: "New Imports", value: "\(4)", color: .purple)
+//                            RoundRectangleView(title: "Total Books", value: "\(viewModel.totalBooks)", color: .blue)
+//                            RoundRectangleView(title: "Books Issued", value: "\(viewModel.booksIssued)", color: .green)
+//                            RoundRectangleView(title: "Due Returns", value: "\(viewModel.dueReturns)", color: .orange)
+//                            RoundRectangleView(title: "New Imports", value: "\(viewModel.newImports)", color: .purple)
                         }
                         .padding()
                         
@@ -32,17 +36,17 @@ struct LibrarianDashboardView: View {
                             Text("Recent Activities")
                                 .font(.headline)
                             
-                            ForEach(viewModel.recentActivities, id: \.self) { activity in
-                                HStack {
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 8, height: 8)
-                                    Text(activity)
-                                    Spacer()
-                                    Text("2 hours ago")
-                                        .foregroundColor(.gray)
-                                }
-                            }
+//                            ForEach(viewModel.recentActivities, id: \.self) { activity in
+//                                HStack {
+//                                    Circle()
+//                                        .fill(Color.blue)
+//                                        .frame(width: 8, height: 8)
+//                                    Text(activity)
+//                                    Spacer()
+//                                    Text("2 hours ago")
+//                                        .foregroundColor(.gray)
+//                                }
+//                            }
                         }
                         .padding()
                         
@@ -57,7 +61,7 @@ struct LibrarianDashboardView: View {
             }
             
             NavigationView {
-                AddBooksView(viewModel: viewModel)
+                AddBooksOptionView(viewModel: viewModel)
             }
             .tabItem {
                 Label("Import", systemImage: "arrow.up.doc")

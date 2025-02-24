@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct AddBooksView: View {
+struct AddBooksOptionView: View {
     @ObservedObject var viewModel: LibraryViewModel
     
     var body: some View {
@@ -54,5 +54,5 @@ struct AddBooksView: View {
 }
 
 #Preview {
-    AddBooksView(viewModel: LibraryViewModel())
+    AddBooksOptionView(viewModel: LibraryViewModel())
 }
