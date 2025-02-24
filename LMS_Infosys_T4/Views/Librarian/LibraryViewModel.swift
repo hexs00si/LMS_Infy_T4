@@ -120,6 +120,139 @@ class LibraryViewModel: ObservableObject {
         }
     }
     
+//    func issueBook(book: Book) async throws {
+//        let db = Firestore.firestore()
+//        let bookRef = db.collection("books").document(book.id!)
+//        let fineAmount = db.collection("libraries").document(book.libraryID)
+//        
+//        // Fetch all available book copies
+//        let bookCopiesRef = bookRef.collection("bookCopies")
+//        let bookCopiesSnapshot = try await bookCopiesRef.whereField("status", isEqualTo: "available").getDocuments()
+//        
+//        guard let availableBookCopy = bookCopiesSnapshot.documents.first else {
+//            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "No available copies of this book."])
+//        }
+//        
+//        let bookBarcodeID = availableBookCopy.documentID
+//        let bookIssueRef = db.collection("bookIssues")
+//        
+//        // Check if this bookBarcodeID is already issued
+//        let issuedBooksSnapshot = try await bookIssueRef.whereField("bookID", isEqualTo: bookBarcodeID)
+//            .whereField("isReturned", isEqualTo: false).getDocuments()
+//        
+//        if !issuedBooksSnapshot.documents.isEmpty {
+//            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "This book copy is already issued."])
+//        }
+//        
+//        let bookCopyRef = bookCopiesRef.document(bookBarcodeID)
+//        let newIssueRef = bookIssueRef.document()
+//
+//        let issueDate = Date()
+//        
+//        // Calculate due date (issueDate + 2 months) and initial return date (issueDate - 1 day)
+//        guard let dueDate = Calendar.current.date(byAdding: .month, value: 2, to: issueDate),
+//              let initialReturnDate = Calendar.current.date(byAdding: .day, value: -1, to: issueDate) else {
+//            throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due or return date."])
+//        }
+//        
+//        // Prepare issue data
+//        let issueData: [String: Any] = [
+//            "issueID": newIssueRef.documentID,
+//            "useruid": Auth.auth().currentUser!.uid,
+//            "bookID": bookBarcodeID,
+//            "libraryuid": book.libraryID,
+//            "issueDate": Timestamp(date: issueDate),
+//            "dueDate": Timestamp(date: dueDate),
+//            "returnDate": Timestamp(date: initialReturnDate), // Initially issueDate - 1 day
+//            "isReturned": false,
+//            "fineAmount": 0.0
+//        ]
+//        
+//        // Perform Firestore batch operation
+//        let batch = db.batch()
+//        
+//        // Update book copy status to "checked out"
+//        batch.updateData(["status": "checked out"], forDocument: bookCopyRef)
+//        
+//        // Add book issue record
+//        batch.setData(issueData, forDocument: newIssueRef)
+//        
+//        // Commit batch
+//        try await batch.commit()
+//        
+//        print("Book issued successfully. Due date: \(dueDate), Initial return date: \(initialReturnDate)")
+//    }
+    
+    func issueBook(book: Book) async throws {
+        let db = Firestore.firestore()
+        let bookRef = db.collection("books").document(book.id!)
+        let libraryRef = db.collection("libraries").document(book.libraryID)
+        
+        // Fetch fineAmount from the library document
+        let librarySnapshot = try await libraryRef.getDocument()
+        guard let libraryData = librarySnapshot.data(),
+              let fineAmount = libraryData["finePerDay"] as? Double else {
+            throw NSError(domain: "LibraryError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch fine amount."])
+        }
+
+        // Fetch all available book copies
+        let bookCopiesRef = bookRef.collection("bookCopies")
+        let bookCopiesSnapshot = try await bookCopiesRef.whereField("status", isEqualTo: "available").getDocuments()
+        
+        guard let availableBookCopy = bookCopiesSnapshot.documents.first else {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "No available copies of this book."])
+        }
+        
+        let bookBarcodeID = availableBookCopy.documentID
+        let bookIssueRef = db.collection("bookIssues")
+        
+        // Check if this bookBarcodeID is already issued
+        let issuedBooksSnapshot = try await bookIssueRef.whereField("bookID", isEqualTo: bookBarcodeID)
+            .whereField("isReturned", isEqualTo: false).getDocuments()
+        
+        if !issuedBooksSnapshot.documents.isEmpty {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "This book copy is already issued."])
+        }
+        
+        let bookCopyRef = bookCopiesRef.document(bookBarcodeID)
+        let newIssueRef = bookIssueRef.document()
+
+        let issueDate = Date()
+        
+        // Calculate due date (issueDate + 2 months) and initial return date (issueDate - 1 day)
+        guard let dueDate = Calendar.current.date(byAdding: .month, value: 2, to: issueDate),
+              let initialReturnDate = Calendar.current.date(byAdding: .day, value: -1, to: issueDate) else {
+            throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due or return date."])
+        }
+        
+        // Prepare issue data including fineAmount
+        let issueData: [String: Any] = [
+            "issueID": newIssueRef.documentID,
+            "useruid": Auth.auth().currentUser!.uid,
+            "bookID": bookBarcodeID,
+            "libraryuid": book.libraryID,
+            "issueDate": Timestamp(date: issueDate),
+            "dueDate": Timestamp(date: dueDate),
+            "returnDate": Timestamp(date: initialReturnDate), // Initially issueDate - 1 day
+            "isReturned": false,
+            "fineAmount": fineAmount // Added fine amount from library document
+        ]
+        
+        // Perform Firestore batch operation
+        let batch = db.batch()
+        
+        // Update book copy status to "checked out"
+        batch.updateData(["status": "checked out"], forDocument: bookCopyRef)
+        
+        // Add book issue record
+        batch.setData(issueData, forDocument: newIssueRef)
+        
+        // Commit batch
+        try await batch.commit()
+        
+        print("Book issued successfully. Due date: \(dueDate), Initial return date: \(initialReturnDate), Fine per day: \(fineAmount)")
+    }
+    
     private func generateBarcode(bookID: String, copyNumber: Int) -> String {
         // Generate a unique barcode using book ID and copy number
         // You can customize this format according to your needs
