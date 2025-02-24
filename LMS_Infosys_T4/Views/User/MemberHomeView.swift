@@ -11,21 +11,15 @@ struct MemberHomeView: View {
     @State private var selectedCategory: String = "All Books"
     @State private var searchText = ""
     @State private var showingGenreFilter = false
-    
-    // Categories to choose from
+    @StateObject private var viewModel = LibraryViewModel() // Persistent ViewModel
+
     let categories = ["All Books", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
     
     // Filtered books based on selected category
-    var filteredBooks: [BookDetails] {
-        if selectedCategory == "All Books" || selectedCategory == "All" {
-            return BookData.books.filter { book in
-                // Filter by searchText (case-insensitive)
-                searchText.isEmpty || book.title.lowercased().contains(searchText.lowercased())
-            }
-        } else {
-            return BookData.books.filter { book in
-                book.category.contains(selectedCategory) && (searchText.isEmpty || book.title.lowercased().contains(searchText.lowercased()))
-            }
+    var filteredBooks: [Book] {
+        viewModel.books.filter { book in
+            (selectedCategory == "All Books" || book.genre.contains(selectedCategory)) &&
+            (searchText.isEmpty || book.title.lowercased().contains(searchText.lowercased()))
         }
     }
 
@@ -35,7 +29,6 @@ struct MemberHomeView: View {
                 // Search bar for searching books
                 SearchBar(text: $searchText, placeholder: "Search books...")
                 
-                // Book display grid
                 ScrollView {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                         ForEach(filteredBooks) { book in
@@ -45,7 +38,6 @@ struct MemberHomeView: View {
                     .padding()
                 }
             }
-//            .navigationTitle("Library")
             .navigationTitle(selectedCategory)
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
@@ -69,6 +61,9 @@ struct MemberHomeView: View {
             )
             .sheet(isPresented: $showingGenreFilter) {
                 GenreFilterView(selectedCategory: $selectedCategory)
+            }
+            .onAppear {
+                viewModel.fetchBooks() // Fetch books when the view appears
             }
         }
     }
@@ -107,12 +102,12 @@ struct GenreFilterView: View {
 }
 
 struct BookCard: View {
-    let book: BookDetails
+    let book: Book
     
     var body: some View {
         NavigationLink(destination: BookDetailsView(book: book)) {
             VStack(alignment: .center) {
-                Image(book.image)
+                Image(systemName: book.coverImage ?? "book")
                     .resizable()
                     .scaledToFill()
                     .frame(width: 150, height: 160)
@@ -129,12 +124,12 @@ struct BookCard: View {
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Text(book.status)
+                Text("\(book.availabilityStatus)")
                     .font(.caption)
                     .padding(4)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .background(book.status == "Available" ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                    .foregroundColor(book.status == "Available" ? .green : .red)
+                    .background(book.availabilityStatus == AvailabilityStatus.available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                    .foregroundColor(book.availabilityStatus == AvailabilityStatus.available ? .green : .red)
                     .cornerRadius(6)
             }
             .padding()

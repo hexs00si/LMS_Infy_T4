@@ -1,9 +1,10 @@
 import SwiftUI
-//
-//struct BookDetailsView: View {
-//    let book: BookDetails
-//    
-//    var body: some View {
+
+struct BookDetailsView: View {
+    let book: Book
+    
+    var body: some View {
+        Text("Book Details here")
 //        ScrollView {
 //            VStack(alignment: .center, spacing: 16) {
 //                ZStack(alignment: .topTrailing) {
@@ -123,13 +124,13 @@ import SwiftUI
 //            .navigationTitle("Book Details")
 //            .navigationBarTitleDisplayMode(.inline)
 //        }
-//    }
-//}
-//
-//struct BookDetailsView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        NavigationView {
+    }
+}
+
+struct BookDetailsView_Previews: PreviewProvider {
+    static var previews: some View {
+        NavigationView {
 //            BookDetailsView(book: BookData.books.first!)
-//        }
-//    }
-//}
+        }
+    }
+}

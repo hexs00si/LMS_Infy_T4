@@ -13,23 +13,6 @@
 import SwiftUI
 import CodeScanner
 
-// Enum for availabilityStatus
-enum AvailabilityStatus: Int, Codable {
-    case available = 1
-    case checkedOut = 2
-    case reserved = 3
-    case underMaintenance = 4
-    
-    var description: String {
-        switch self {
-        case .available: return "Available"
-        case .checkedOut: return "Checked Out"
-        case .reserved: return "Reserved"
-        case .underMaintenance: return "Under Maintenance"
-        }
-    }
-}
-
 // Update the Google Books API Response Models
 struct GoogleBooksResponse: Codable {
     let items: [BookItem]
