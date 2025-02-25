@@ -1,10 +1,3 @@
-//
-//  AuthenticationService.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
@@ -46,19 +39,6 @@ class AuthenticationService: ObservableObject {
                 let adminRef = db.collection("admins").document(uid)
                 batch.setData(adminData, forDocument: adminRef)
                 
-//            case .librarian:
-//                let librarianData: [String: Any] = [
-//                    "uid": uid,
-//                    "email": email,
-//                    "name": "",
-//                    "gender": "",
-//                    "phoneNumber": "",
-//                    "image": "",
-//                    "joinDate": Date()
-//                ]
-//                let librarianRef = db.collection("librarians").document(uid)
-//                batch.setData(librarianData, forDocument: librarianRef)
-//                
             case .member:
                 let userData: [String: Any] = [
                     "uid": uid,
@@ -100,6 +80,18 @@ class AuthenticationService: ObservableObject {
             "isFirstLogin": false
         ])
     }
+    
+    // Add sign out method
+    func signOut() throws {
+        do {
+            try auth.signOut()
+            print("✅ Successfully signed out user")
+        } catch {
+            print("❌ Error signing out: \(error.localizedDescription)")
+            throw error
+        }
+    }
+    
     func completeSignUp(password: String, user: User, organizationID: String, completion: @escaping (Bool, String?) -> Void) {
         auth.createUser(withEmail: user.email, password: password) { [weak self] authResult, error in
            if let error = error {
@@ -142,34 +134,22 @@ class AuthenticationService: ObservableObject {
            print("📌 Writing data to Firestore: \(authUserData)")
             print("📌 Writing data to Firestore: \(memberData) (members)")
 
-//           // Save to Firestore
-//           authUserRef.setData(authUserData) { error in
-//               if let error = error {
-//                   print("❌ Firestore write failed: \(error.localizedDescription)")
-//                   completion(false, "Error saving user data: \(error.localizedDescription)")
-//               } else {
-//                   print("✅ Firestore write successful (authUsers only)")
-//                   completion(true, nil)
-//               }
-//           }
-            
             // Save both documents using batch
-                   let batch = db.batch()
-                   batch.setData(authUserData, forDocument: authUserRef)
-                   batch.setData(memberData, forDocument: memberRef)
+            let batch = db.batch()
+            batch.setData(authUserData, forDocument: authUserRef)
+            batch.setData(memberData, forDocument: memberRef)
 
-                   batch.commit { error in
-                       if let error = error {
-                           print("❌ Firestore batch write failed: \(error.localizedDescription)")
-                           completion(false, "Error saving user data: \(error.localizedDescription)")
-                       } else {
-                           print("✅ Firestore write successful (authUsers & members)")
-                           completion(true, nil)
-                       }
-                   }
+            batch.commit { error in
+                if let error = error {
+                    print("❌ Firestore batch write failed: \(error.localizedDescription)")
+                    completion(false, "Error saving user data: \(error.localizedDescription)")
+                } else {
+                    print("✅ Firestore write successful (authUsers & members)")
+                    completion(true, nil)
+                }
+            }
        }
     }
-
 
     private func storeUserInDatabase(userId: String, user: User, organizationID: String, completion: @escaping (Bool, String?) -> Void) {
         print("➡️ Storing user in Firestore (authUsers only) for testing: \(userId)")
@@ -193,9 +173,6 @@ class AuthenticationService: ObservableObject {
             }
         }
     }
-
-
-
 }
 
 enum AuthError: Error {
@@ -203,4 +180,3 @@ enum AuthError: Error {
     case notAuthenticated
     case notAuthorized
 }
-

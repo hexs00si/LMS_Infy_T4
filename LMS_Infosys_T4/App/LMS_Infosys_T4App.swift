@@ -1,10 +1,3 @@
-//
-//  LMS_Infosys_T4App.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import SwiftUI
 import FirebaseCore
 
@@ -17,7 +10,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 }
 
 @main
-struct FirebaseBootcampApp: App {
+struct LMS_Infosys_T4App: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var authViewModel = AuthViewModel()  // Ensure it persists
 

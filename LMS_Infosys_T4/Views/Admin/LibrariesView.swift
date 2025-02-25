@@ -61,6 +61,7 @@ struct LibrariesView: View {
                 }
             )
         }
+        .navigationBarBackButtonHidden(true)
     }
     
     private var libraryList: some View {

@@ -1,18 +1,39 @@
-//
-//  ReportsView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import SwiftUI
 
 struct ReportsView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @Binding var isPresented: Bool
+    @State private var showingSignOutAlert = false
 
-#Preview {
-    ReportsView()
+    var body: some View {
+        NavigationView {
+            VStack {
+                Text("Reports coming soon")
+                    .font(.title)
+                    .foregroundColor(.gray)
+                Spacer()
+            }
+            .navigationTitle("Reports")
+            .navigationBarItems(trailing:
+                Button(action: {
+                    showingSignOutAlert = true
+                }) {
+                    Image(systemName: "arrow.forward.square")
+                        .font(.system(size: 20))
+                        .foregroundColor(.blue)
+                }
+            )
+            .alert("Sign Out", isPresented: $showingSignOutAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive) {
+                    Task {
+                        await authViewModel.signOut()
+                        // No need to set isPresented = false here; ContentView will handle navigation
+                    }
+                }
+            } message: {
+                Text("Are you sure you want to sign out?")
+            }
+        }
+    }
 }

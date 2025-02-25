@@ -1,13 +1,6 @@
-//
-//  AuthViewModel.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import Foundation
 import SwiftUI
-import Combine
+import FirebaseAuth
 
 class AuthViewModel: ObservableObject {
     // Input Properties
@@ -23,9 +16,8 @@ class AuthViewModel: ObservableObject {
     @Published var currentUser: AuthUser?
     @Published var isAuthenticated = false {
         didSet {
-            print("🚀 isAuthenticated changed: \(isAuthenticated)")
-            // Optionally trigger any side effects or UI updates
-            objectWillChange.send()
+            print("🚀 isAuthenticated changed to: \(isAuthenticated)")
+            objectWillChange.send() // Ensure SwiftUI is notified
         }
     }
     
@@ -34,113 +26,140 @@ class AuthViewModel: ObservableObject {
     
     // Private Services
     private let authService = AuthenticationService()
+    private var authStateHandle: AuthStateDidChangeListenerHandle?
     
     // Computed Properties
     var isPasswordValid: Bool {
         passwordCriteria.isValid && newPassword == confirmPassword
     }
     
-    func signIn() async {
-            await MainActor.run {
-                isLoading = true
-                error = nil
-                isAuthenticated = false
-            }
-            
-            do {
-                let user = try await authService.signIn(email: email, password: password)
-                
-                await MainActor.run {
-                    print("✅ User authenticated successfully")
-                    print("User Details: \(user)")
-                    
-                    self.currentUser = user
-                    self.isAuthenticated = true
-                    self.showUpdatePassword = user.isFirstLogin
-                    self.isLoading = false
-                    
-                    print("🔍 Authentication State:")
-                    print("- User Type: \(user.userType.rawValue)")
-                    print("- Is First Login: \(user.isFirstLogin)")
-                    print("- isAuthenticated: \(self.isAuthenticated)")
-                    print("- showUpdatePassword: \(self.showUpdatePassword)")
-                    
-                    self.objectWillChange.send()
-                }
-            } catch {
-                await MainActor.run {
-                    print("❌ Authentication Failed: \(error.localizedDescription)")
-                    self.error = error.localizedDescription
-                    self.isLoading = false
-                    self.isAuthenticated = false
+    init() {
+        // Monitor Firebase auth state changes
+        authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            Task { @MainActor in
+                guard let self = self else { return }
+                if let user = user {
+                    // User is signed in; fetch details if needed
+                    if self.currentUser == nil && !self.email.isEmpty && !self.password.isEmpty {
+                        do {
+                            let authUser = try await self.authService.signIn(email: self.email, password: self.password)
+                            self.currentUser = authUser
+                            self.isAuthenticated = true
+                            self.showUpdatePassword = authUser.isFirstLogin
+                        } catch {
+                            self.error = "Failed to fetch user data: \(error.localizedDescription)"
+                            self.isAuthenticated = false
+                            self.currentUser = nil
+                        }
+                    }
+                } else {
+                    // User is signed out
                     self.currentUser = nil
-                    self.objectWillChange.send()
+                    self.isAuthenticated = false
+                    self.showUpdatePassword = false
+                    self.email = ""
+                    self.password = ""
+                    self.error = nil
+                    print("🔍 Firebase auth state: Signed out")
                 }
             }
         }
+    }
     
-    // Update Password Method
-    func updatePassword() async {
-        // Validate password before proceeding
-        guard isPasswordValid else {
-            error = "Password does not meet criteria or does not match"
-            return
+    deinit {
+        if let handle = authStateHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
+            print("🧹 Removed Firebase auth state listener")
         }
-        
-        // Reset state
+    }
+    
+    func signIn() async {
         await MainActor.run {
-            isLoading = true
-            error = nil
+            self.isLoading = true
+            self.error = nil
         }
         
         do {
-            // Attempt password update
+            let user = try await authService.signIn(email: email, password: password)
+            await MainActor.run {
+                print("✅ User authenticated successfully: \(user)")
+                self.currentUser = user
+                self.isAuthenticated = true
+                self.showUpdatePassword = user.isFirstLogin
+                self.isLoading = false
+                print("🔍 Authentication State - User Type: \(user.userType.rawValue), Is First Login: \(user.isFirstLogin)")
+            }
+        } catch {
+            await MainActor.run {
+                print("❌ Authentication failed: \(error.localizedDescription)")
+                self.error = error.localizedDescription
+                self.isLoading = false
+                self.isAuthenticated = false
+                self.currentUser = nil
+            }
+        }
+    }
+    
+    func updatePassword() async {
+        guard isPasswordValid else {
+            await MainActor.run {
+                self.error = "Password does not meet criteria or does not match"
+            }
+            return
+        }
+        
+        await MainActor.run {
+            self.isLoading = true
+            self.error = nil
+        }
+        
+        do {
             try await authService.updatePassword(newPassword: newPassword)
-            
             await MainActor.run {
                 self.showUpdatePassword = false
                 self.isLoading = false
-                self.isAuthenticated = true
-                
-                // Reset password fields
                 self.newPassword = ""
                 self.confirmPassword = ""
-                
-                // Notify observers
-                self.objectWillChange.send()
+                print("✅ Password updated successfully")
             }
         } catch {
             await MainActor.run {
                 self.error = error.localizedDescription
                 self.isLoading = false
-                
-                // Notify observers
-                self.objectWillChange.send()
+                print("❌ Password update failed: \(error.localizedDescription)")
             }
         }
     }
     
-    // Password Evaluation Method
     func evaluatePassword() {
         passwordCriteria.evaluate(newPassword)
     }
     
-    // Optional: Sign Out Method (uncomment if needed)
-    /*
-    func signOut() {
+    func signOut() async {
+        await MainActor.run {
+            self.isLoading = true
+            self.error = nil
+        }
+        
         do {
             try authService.signOut()
-            // Reset all state
-            currentUser = nil
-            isAuthenticated = false
-            showUpdatePassword = false
-            email = ""
-            password = ""
-            error = nil
-            objectWillChange.send()
+            await MainActor.run {
+                self.currentUser = nil
+                self.isAuthenticated = false
+                self.showUpdatePassword = false
+                self.email = ""
+                self.password = ""
+                self.newPassword = ""
+                self.confirmPassword = ""
+                self.isLoading = false
+                print("🔓 User signed out successfully")
+            }
         } catch {
-            self.error = error.localizedDescription
+            await MainActor.run {
+                self.error = error.localizedDescription
+                self.isLoading = false
+                print("❌ Sign out failed: \(error.localizedDescription)")
+            }
         }
     }
-    */
 }
