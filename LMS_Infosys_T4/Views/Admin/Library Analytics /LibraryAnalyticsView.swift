@@ -4,12 +4,6 @@
 //
 //  Created by Kinshuk Garg on 25/02/25.
 //
-//
-//  LibraryAnalyticsView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Kinshuk Garg on 25/02/25.
-//
 
 import SwiftUI
 import Charts
@@ -176,6 +170,7 @@ struct LibraryAnalyticsView: View {
                                 }
                                 .pickerStyle(SegmentedPickerStyle())
                                 .onChange(of: timeFrame) { newValue in
+                                    // Use the local timeFrame state variable instead of accessing it through viewModel
                                     viewModel.fetchBorrowingTrends(for: newValue)
                                 }
                             }

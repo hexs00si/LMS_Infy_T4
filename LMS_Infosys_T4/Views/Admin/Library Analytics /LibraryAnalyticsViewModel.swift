@@ -70,6 +70,7 @@ class LibraryAnalyticsViewModel: ObservableObject {
     @Published var isLoadingTrends = false
     @Published var alertItem: AlertItem?
     @Published var error: String?
+    @State private var timeFrame: TimeFrame = .week
     
     private let db = Firestore.firestore()
     private var libraryID: String = ""

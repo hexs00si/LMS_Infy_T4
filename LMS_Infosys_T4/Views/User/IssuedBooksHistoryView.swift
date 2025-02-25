@@ -61,7 +61,7 @@ struct IssuedBooksHistoryView: View {
             }
         }
         .onAppear {
-            fetchIssuedBooks()
+          //  fetchIssuedBooks()
         }
     }
     

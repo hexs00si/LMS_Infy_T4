@@ -22,7 +22,7 @@ struct AdminDashboardView: View {
                     Text("Librarians")
                 }
             
-            ReportsView()
+            LibraryAnalyticsView()
                 .tabItem {
                     Image(systemName: "chart.bar.fill")
                     Text("Reports")
