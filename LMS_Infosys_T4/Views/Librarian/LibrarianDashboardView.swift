@@ -52,7 +52,8 @@ struct LibrarianDashboardView: View {
             }
             
             NavigationView {
-                BookIssueRequestsView()
+//                BookIssueRequestsView()
+                BookRequestsView()
             }
             .tabItem {
                 Label("Issue Requests", systemImage: "doc.text.magnifyingglass")

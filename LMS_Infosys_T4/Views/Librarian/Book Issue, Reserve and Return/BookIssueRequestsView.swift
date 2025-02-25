@@ -27,7 +27,8 @@ struct BookIssueRequestsView: View {
             Group {
                 switch selectedSegment {
                 case 0:
-                    IssueView()
+//                    IssueView()
+                    EmptyView()
                 case 1:
                     ReserveView()
                 default:
