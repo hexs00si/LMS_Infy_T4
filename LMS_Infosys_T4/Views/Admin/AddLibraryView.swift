@@ -13,6 +13,8 @@ struct AddLibraryView: View {
     @State private var loanDuration = 14
     @State private var showLibrarianSelection = false
     @State private var showLocationPicker = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     // Map related states
     @State private var selectedCoordinate: CLLocationCoordinate2D?
@@ -92,6 +94,11 @@ struct AddLibraryView: View {
                 }
                 .disabled(!canSave)
             )
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
             .sheet(isPresented: $showLocationPicker) {
                 MapSelectionView(
                     coordinate: $selectedCoordinate,
@@ -117,6 +124,12 @@ struct AddLibraryView: View {
         let finalLocation = !customLocation.isEmpty ? customLocation : locationName
         
         guard let coordinates = selectedCoordinate else { return }
+        
+        if viewModel.libraries.contains(where: { $0.name == name && $0.location == finalLocation }) {
+            errorMessage = "Library already exists with the same name and location."
+            showError = true
+            return
+        }
         
         Task {
             await viewModel.createLibrary(

@@ -12,7 +12,7 @@ struct InitialSelectionView: View {
     
     var body: some View {
         VStack(spacing: 30) {
-            
+            Spacer()
             Image(systemName: "books.vertical")
                 .resizable()
                 .scaledToFit()
@@ -50,6 +50,7 @@ struct InitialSelectionView: View {
                     .background(Color.black)
                     .cornerRadius(10)
             }
+            Spacer()
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 40)

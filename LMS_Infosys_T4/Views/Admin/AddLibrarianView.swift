@@ -19,6 +19,9 @@ struct AddLibrarianView: View {
     @State private var phoneNumber = ""
     @State private var selectedLibrary: Library?
     @State private var showLibraryPicker = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+    @State private var phoneErrorMessage: String? = nil
     
     let genderOptions = ["Male", "Female", "Other"]
     
@@ -32,6 +35,22 @@ struct AddLibrarianView: View {
                         .autocapitalization(.none)
                     TextField("Phone Number", text: $phoneNumber)
                         .keyboardType(.phonePad)
+                        .onChange(of: phoneNumber) { newValue in
+                            phoneNumber = newValue.filter { $0.isNumber }
+                            if phoneNumber.count > 10 || phoneNumber.count < 10 {
+                                phoneErrorMessage = "Phone number must be of 10 digits"
+                                phoneNumber = String(phoneNumber.prefix(10))
+                            } else {
+                                phoneErrorMessage = nil
+                            }
+                        }
+                    
+                    if let error = phoneErrorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, 2)
+                    }
                     
                     Picker("Gender", selection: $gender) {
                         ForEach(genderOptions, id: \.self) { gender in
@@ -71,6 +90,11 @@ struct AddLibrarianView: View {
                 }
                 .disabled(!isFormValid)
             )
+            .alert("Error", isPresented: $showError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(errorMessage)
+            }
             .sheet(isPresented: $showLibraryPicker) {
                 LibraryPickerView(selectedLibrary: $selectedLibrary)
             }
@@ -81,12 +105,19 @@ struct AddLibrarianView: View {
         !name.isEmpty &&
         !email.isEmpty &&
         email.contains("@") &&
-        !phoneNumber.isEmpty &&
+//        !phoneNumber.isEmpty &&
+        phoneNumber.count == 10 &&
         selectedLibrary != nil
     }
     
     private func saveLibrarian() {
         guard let library = selectedLibrary else { return }
+        
+        if viewModel.librarians.contains(where: { $0.name == name && $0.email == email }) {
+            errorMessage = "A librarian with this name and email already exists."
+            showError = true
+            return
+        }
         
         Task {
             do {

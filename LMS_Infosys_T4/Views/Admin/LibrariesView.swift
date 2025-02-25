@@ -4,6 +4,33 @@ struct LibrariesView: View {
     @StateObject private var viewModel = LibrariesViewModel()
     @State private var showingAddLibrary = false
     @State private var selectedLibrary: Library?
+    @State private var searchText = ""
+    @State private var activeFilter: LibraryFilter = .all
+    
+    var filteredLibraries: [Library] {
+        var result = viewModel.libraries
+                
+        // Apply active status filter
+        switch activeFilter {
+        case .all:
+            // Show all libraries, no filtering needed
+            break
+        case .active:
+            result = result.filter { $0.isActive }
+        case .inactive:
+            result = result.filter { !$0.isActive }
+        }
+        
+        // Apply search text filter if not empty
+        if !searchText.isEmpty {
+            result = result.filter { library in
+                library.name.localizedCaseInsensitiveContains(searchText) ||
+                library.location.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        return result
+    }
     
     var body: some View {
         NavigationView {
@@ -37,23 +64,51 @@ struct LibrariesView: View {
     }
     
     private var libraryList: some View {
-        ScrollView {
-            LazyVStack(spacing: 16) {
-                ForEach(viewModel.libraries) { library in
-                    LibraryRowView(
-                        library: library,
-                        viewModel: viewModel
-                    ) {
-                        selectedLibrary = library
-                    }
+        VStack {
+            HStack {
+                Spacer()
+                Text("Total Libraries: \(filteredLibraries.count)")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
                     .padding(.horizontal)
-                }
             }
-            .padding(.vertical)
-        }
-        .background(Color(.systemGroupedBackground))
-        .refreshable {
-            viewModel.fetchLibraries()
+            
+//            HStack {
+//                SearchBar(text: $searchText, placeholder: "Search by name or location...")
+//                Picker("Filter", selection: $activeFilter) {
+//                    Text("All").tag(LibraryFilter.all)
+//                    Text("Active").tag(LibraryFilter.active)
+//                    Text("Inactive").tag(LibraryFilter.inactive)
+//                }
+//                .pickerStyle(SegmentedPickerStyle())
+//                .padding(.horizontal)
+//                .padding(.top, 8)
+//            }
+            HStack {
+                SearchBar(text: $searchText, placeholder: "Search by name or location...")
+                FilterButton(activeFilter: $activeFilter)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    ForEach(filteredLibraries) { library in
+                        LibraryRowView(
+                            library: library,
+                            viewModel: viewModel
+                        ) {
+                            selectedLibrary = library
+                        }
+                        .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+            }
+            .background(Color(.systemGroupedBackground))
+            .refreshable {
+                viewModel.fetchLibraries()
+            }
         }
     }
     
@@ -92,11 +147,63 @@ struct ErrorBanner: View {
     }
 }
 
-
-
-// Preview provider
-struct LibrariesView_Previews: PreviewProvider {
-    static var previews: some View {
-        LibrariesView()
+enum LibraryFilter {
+    case all
+    case active
+    case inactive
+    
+    var title: String {
+        switch self {
+        case .all: return "All Libraries"
+        case .active: return "Active Libraries"
+        case .inactive: return "Inactive Libraries"
+        }
     }
+}
+
+struct FilterButton: View {
+    @Binding var activeFilter: LibraryFilter
+    
+    var body: some View {
+        Menu {
+            Button(action: { activeFilter = .all }) {
+                HStack {
+                    Text(LibraryFilter.all.title)
+                    if activeFilter == .all {
+                        Spacer()
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+            
+            Button(action: { activeFilter = .active }) {
+                HStack {
+                    Text(LibraryFilter.active.title)
+                    if activeFilter == .active {
+                        Spacer()
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+            
+            Button(action: { activeFilter = .inactive }) {
+                HStack {
+                    Text(LibraryFilter.inactive.title)
+                    if activeFilter == .inactive {
+                        Spacer()
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .font(.title2)
+                .foregroundColor(.primary)
+        }
+    }
+}
+
+
+#Preview {
+    LibrariesView()
 }

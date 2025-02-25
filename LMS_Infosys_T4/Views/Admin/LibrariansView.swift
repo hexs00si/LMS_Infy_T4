@@ -1,17 +1,23 @@
-//
-//  LibrariansView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
-
 import SwiftUI
 
 struct LibrariansView: View {
     @StateObject private var viewModel = LibrarianViewModel()
     @State private var showingAddLibrarian = false
     @State private var selectedLibrarian: Librarian?
+    @State private var searchText = ""
 
+    var filteredLibrarians: [Librarian] {
+//        filterItems(items: viewModel.librarians, searchText: searchText, keyPath: \.name)
+        if searchText.isEmpty {
+            return viewModel.librarians
+        } else {
+            return viewModel.librarians.filter { librarian in
+                librarian.name.localizedCaseInsensitiveContains(searchText) ||
+                librarian.email.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
     var body: some View {
         NavigationView {
             Group {
@@ -22,13 +28,28 @@ struct LibrariansView: View {
                         description: Text("Start by adding your first librarian")
                     )
                 } else {
-                    List {
-                        ForEach(viewModel.librarians) { librarian in
-                            LibrarianRowView(librarian: librarian)
-                                .onTapGesture {
-                                    selectedLibrarian = librarian
-                                }
+                    VStack {
+                        HStack {
+                            Spacer()
+                            Text("Total Librarians: \(filteredLibrarians.count)")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                                .padding(.horizontal)
                         }
+                        SearchBar(text: $searchText, placeholder: "Search by name or email...")
+                        ScrollView {
+                            LazyVStack(spacing: 16) {
+                                ForEach(filteredLibrarians) { librarian in
+                                    LibrarianRowView(librarian: librarian)
+                                        .onTapGesture {
+                                            selectedLibrarian = librarian
+                                        }
+                                        .padding(.horizontal)
+                                }
+                            }
+                            .padding(.vertical)
+                        }
+                        .background(Color(.systemGroupedBackground))
                     }
                 }
             }
@@ -58,20 +79,66 @@ struct LibrariansView: View {
 struct LibrarianRowView: View {
     let librarian: Librarian
     
+//    var body: some View {
+//        VStack(alignment: .leading, spacing: 4) {
+//            Text(librarian.name)
+//                .font(.headline)
+//            Text(librarian.email)
+//                .font(.subheadline)
+//                .foregroundColor(.secondary)
+//            HStack {
+//                Image(systemName: "phone")
+//                Text(librarian.phoneNumber)
+//                    .font(.caption)
+//            }
+//            .foregroundColor(.secondary)
+//        }
+//        .padding(.vertical, 8)
+//    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(librarian.name)
-                .font(.headline)
-            Text(librarian.email)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.system(size: 18, weight: .semibold))
+            HStack {
+                Image(systemName: "envelope")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                Text(librarian.email)
+                    .font(.system(size: 15))
+                    .foregroundColor(.gray)
+            }
             HStack {
                 Image(systemName: "phone")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
                 Text(librarian.phoneNumber)
-                    .font(.caption)
+                    .font(.system(size: 15))
+                    .foregroundColor(.gray)
             }
             .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(
+                    color: Color.black.opacity(0.08),
+                    radius: 8,
+                    x: 0,
+                    y: 4
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.gray.opacity(0.1), lineWidth: 1)
+        )
     }
+}
+
+
+#Preview {
+    LibrariansView()
 }
