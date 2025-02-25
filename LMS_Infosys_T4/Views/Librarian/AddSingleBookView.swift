@@ -202,7 +202,7 @@ struct AddSingleBookView: View {
     }
     
     private func convertImageToBase64(_ image: UIImage) -> String? {
-        guard let imageData = image.jpegData(compressionQuality: 0.5) else { return nil }
+        guard let imageData = image.jpegData(compressionQuality: 0.1) else { return nil }
         return imageData.base64EncodedString()
     }
     

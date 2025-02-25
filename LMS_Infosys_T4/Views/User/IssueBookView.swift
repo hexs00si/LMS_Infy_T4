@@ -5,7 +5,6 @@
 //  Created by Dakshdeep Singh on 24/02/25.
 //
 
-
 import SwiftUI
 import CodeScanner
 import Firebase
@@ -16,16 +15,26 @@ struct IssueBookView: View {
     
     // Book Details (Read-Only)
     @State private var bookID = ""
+    @State private var originalBookID = "" // To store the main book ID (without copy number)
     @State private var title = ""
     @State private var author = ""
     @State private var isbn = ""
-    @State private var coverImageURL = ""
-    @State private var availableCopies = 0
+    @State private var coverImage = ""
+    @State private var libraryID = ""
+    @State private var addedByLibrarian = ""
     
     // UI States
     @State private var showingScanner = false
     @State private var isLoading = false
-    @State private var errorMessage: String? = nil
+    @State private var showAlert = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var isBookFetched = false
+    
+    // Check if all required fields are filled
+    private var isFormValid: Bool {
+        return isBookFetched && !originalBookID.isEmpty && !title.isEmpty && !author.isEmpty && !isbn.isEmpty
+    }
     
     var body: some View {
         NavigationView {
@@ -45,21 +54,20 @@ struct IssueBookView: View {
                     }
                     
                     Button("Fetch Book Details") {
-                        fetchBookDetails(bookID: bookID)
+                        fetchBookDetails(bookCopyID: bookID)
                     }
                     .disabled(bookID.isEmpty || isLoading)
                 }
                 
                 // Cover Image Section
-                if !coverImageURL.isEmpty, let url = URL(string: coverImageURL) {
+                if !coverImage.isEmpty, let imageData = Data(base64Encoded: coverImage) {
                     Section(header: Text("Cover Image").textCase(.uppercase)) {
-                        AsyncImage(url: url) { image in
-                            image.resizable()
+                        if let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
                                 .scaledToFit()
                                 .frame(height: 200)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
-                        } placeholder: {
-                            ProgressView()
                         }
                     }
                 }
@@ -73,15 +81,26 @@ struct IssueBookView: View {
             }
             .navigationTitle("Issue Book")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(leading: Button("Cancel") { presentationMode.wrappedValue.dismiss() },
-                                trailing: Button("Issue") { issueBook() }.disabled(bookID.isEmpty))
+            .navigationBarItems(
+                leading: Button("Cancel") {
+                    presentationMode.wrappedValue.dismiss()
+                },
+                trailing: Button("Issue") {
+                    issueBook()
+                }
+                .disabled(!isFormValid || isLoading)
+            )
             .sheet(isPresented: $showingScanner) {
                 CodeScannerView(codeTypes: [.qr], completion: handleScan)
             }
-            .alert("Error", isPresented: .constant(errorMessage != nil)) {
-                Button("OK") { errorMessage = nil }
+            .alert(alertTitle, isPresented: $showAlert) {
+                Button("OK") {
+                    if alertTitle == "Success" {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
             } message: {
-                Text(errorMessage ?? "")
+                Text(alertMessage)
             }
             .overlay {
                 if isLoading {
@@ -94,23 +113,84 @@ struct IssueBookView: View {
         }
     }
     
-    private func fetchBookDetails(bookID: String) {
+    private func fetchBookDetails(bookCopyID: String) {
+        // Extract book ID before the "-" if it's a barcode format
+        let components = bookCopyID.components(separatedBy: "-")
+        let mainBookID = components.first ?? bookCopyID
+        
         isLoading = true
-        errorMessage = nil
+        isBookFetched = false
         
         let db = Firestore.firestore()
-        db.collection("books").document(bookID).getDocument { document, error in
+        db.collection("books").document(mainBookID).getDocument { document, error in
             DispatchQueue.main.async {
                 isLoading = false
+                
                 if let document = document, document.exists {
                     let data = document.data()
+                    
+                    // Store essential fields
+                    originalBookID = mainBookID
                     title = data?["title"] as? String ?? ""
                     author = data?["author"] as? String ?? ""
                     isbn = data?["isbn"] as? String ?? ""
-                    availableCopies = data?["availableCopies"] as? Int ?? 0
-                    coverImageURL = data?["coverImage"] as? String ?? ""
+                    coverImage = data?["coverImage"] as? String ?? ""
+                    libraryID = data?["libraryID"] as? String ?? ""
+                    addedByLibrarian = data?["addedByLibrarian"] as? String ?? ""
+                    
+                    isBookFetched = true
                 } else {
-                    errorMessage = "Book not found."
+                    alertTitle = "Not Found"
+                    alertMessage = "Book not found. Please check the ID and try again."
+                    showAlert = true
+                }
+            }
+        }
+    }
+    
+    private func issueBook() {
+        guard isFormValid else {
+            alertTitle = "Error"
+            alertMessage = "Please fetch a valid book first."
+            showAlert = true
+            return
+        }
+        
+        isLoading = true
+        
+        // Create a minimal book object with required fields
+        let book = Book(
+            id: originalBookID,
+            libraryID: libraryID,
+            addedByLibrarian: addedByLibrarian,
+            title: title,
+            author: author,
+            isbn: isbn,
+            availabilityStatus: .available,
+            publishYear: 0, // Default value
+            genre: "", // Default value
+            coverImage: coverImage,
+            description: "", // Default value
+            quantity: 1, // Default value
+            availableCopies: 1 // Default value
+        )
+        
+        Task {
+            do {
+                try await viewModel.requestBook(book: book, copyID: bookID)
+                
+                await MainActor.run {
+                    isLoading = false
+                    alertTitle = "Success"
+                    alertMessage = "Book successfully issued."
+                    showAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    alertTitle = "Error"
+                    alertMessage = "Failed to issue book: \(error.localizedDescription)"
+                    showAlert = true
                 }
             }
         }
@@ -121,14 +201,12 @@ struct IssueBookView: View {
         switch result {
         case .success(let scanResult):
             bookID = scanResult.string
-            fetchBookDetails(bookID: scanResult.string)
+            fetchBookDetails(bookCopyID: scanResult.string)
         case .failure:
-            errorMessage = "Scanning failed"
+            alertTitle = "Scan Failed"
+            alertMessage = "Unable to read QR code. Please try again or enter the book ID manually."
+            showAlert = true
         }
-    }
-    
-    private func issueBook() {
-        // Implement book issue logic here
     }
 }
 

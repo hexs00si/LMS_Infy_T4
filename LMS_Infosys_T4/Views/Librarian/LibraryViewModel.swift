@@ -27,6 +27,13 @@ struct Book: Identifiable, Codable {
         }
         return UIImage(data: imageData)
     }
+    
+//    func getCoverImage(byData base64String: String) -> UIImage? {
+//        guard let imageData = Data(base64Encoded: base64String) else {
+//            return nil
+//        }
+//        return UIImage(data: imageData)
+//    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -93,13 +100,13 @@ class LibraryViewModel: ObservableObject {
             
             // Create individual copies in the bookCopies subcollection
             for copyNumber in 1...book.quantity {
-                let copyRef = newBookRef.collection("bookCopies").document()
                 let barcode = generateBarcode(bookID: newBookRef.documentID, copyNumber: copyNumber)
+                let copyRef = newBookRef.collection("bookCopies").document(barcode)
                 
                 let copyData: [String: Any] = [
                     "barcode": barcode,
                     "status": "available",
-                    "libraryUID": book.libraryID
+                    "libraryID": book.libraryID
                 ]
                 
                 batch.setData(copyData, forDocument: copyRef)
@@ -183,42 +190,42 @@ class LibraryViewModel: ObservableObject {
 //        print("Book issued successfully. Due date: \(dueDate), Initial return date: \(initialReturnDate)")
 //    }
     
-    func issueBook(book: Book) async throws {
+    func requestBook(book: Book, copyID: String) async throws {
         let db = Firestore.firestore()
         let bookRef = db.collection("books").document(book.id!)
-        let libraryRef = db.collection("libraries").document(book.libraryID)
+//        let libraryRef = db.collection("libraries").document(book.libraryID)
         
-        // Fetch fineAmount from the library document
-        let librarySnapshot = try await libraryRef.getDocument()
-        guard let libraryData = librarySnapshot.data(),
-              let fineAmount = libraryData["finePerDay"] as? Double else {
-            throw NSError(domain: "LibraryError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch fine amount."])
+//        // Fetch fineAmount from the library document
+//        let librarySnapshot = try await libraryRef.getDocument()
+//        guard let libraryData = librarySnapshot.data(),
+//              let fineAmount = libraryData["finePerDay"] as? Double else {
+//            throw NSError(domain: "LibraryError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch fine amount."])
+//        }
+        
+        // Reference the specified book copy by copyID
+        let bookCopyRef = bookRef.collection("bookCopies").document(copyID)
+        let bookCopySnapshot = try await bookCopyRef.getDocument()
+        
+        guard let bookCopyData = bookCopySnapshot.data(),
+              let status = bookCopyData["status"] as? String, status == "available" else {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "The specified book copy is not available."])
         }
 
-        // Fetch all available book copies
-        let bookCopiesRef = bookRef.collection("bookCopies")
-        let bookCopiesSnapshot = try await bookCopiesRef.whereField("status", isEqualTo: "available").getDocuments()
+        let bookIssueRef = db.collection("bookRequests")
         
-        guard let availableBookCopy = bookCopiesSnapshot.documents.first else {
-            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "No available copies of this book."])
-        }
-        
-        let bookBarcodeID = availableBookCopy.documentID
-        let bookIssueRef = db.collection("bookIssues")
-        
-        // Check if this bookBarcodeID is already issued
-        let issuedBooksSnapshot = try await bookIssueRef.whereField("bookID", isEqualTo: bookBarcodeID)
-            .whereField("isReturned", isEqualTo: false).getDocuments()
+        // Check if this book copy is already issued
+        let issuedBooksSnapshot = try await bookIssueRef
+            .whereField("bookId", isEqualTo: copyID)
+            .whereField("isReturned", isEqualTo: false)
+            .getDocuments()
         
         if !issuedBooksSnapshot.documents.isEmpty {
             throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "This book copy is already issued."])
         }
-        
-        let bookCopyRef = bookCopiesRef.document(bookBarcodeID)
-        let newIssueRef = bookIssueRef.document()
 
+        let newIssueRef = bookIssueRef.document()
         let issueDate = Date()
-        
+
         // Calculate due date (issueDate + 2 months) and initial return date (issueDate - 1 day)
         guard let dueDate = Calendar.current.date(byAdding: .month, value: 2, to: issueDate),
               let initialReturnDate = Calendar.current.date(byAdding: .day, value: -1, to: issueDate) else {
@@ -227,15 +234,16 @@ class LibraryViewModel: ObservableObject {
         
         // Prepare issue data including fineAmount
         let issueData: [String: Any] = [
-            "issueID": newIssueRef.documentID,
-            "useruid": Auth.auth().currentUser!.uid,
-            "bookID": bookBarcodeID,
-            "libraryuid": book.libraryID,
+            "requestID": newIssueRef.documentID,
+            "userId": Auth.auth().currentUser!.uid,
+            "bookId": copyID, // Use the specified copyID
+            "libraryuId": book.libraryID,
+            "librarianId": "",
             "issueDate": Timestamp(date: issueDate),
             "dueDate": Timestamp(date: dueDate),
             "returnDate": Timestamp(date: initialReturnDate), // Initially issueDate - 1 day
             "isReturned": false,
-            "fineAmount": fineAmount // Added fine amount from library document
+//            "fineAmount": fineAmount // Added fine amount from library document
         ]
         
         // Perform Firestore batch operation
@@ -250,7 +258,7 @@ class LibraryViewModel: ObservableObject {
         // Commit batch
         try await batch.commit()
         
-        print("Book issued successfully. Due date: \(dueDate), Initial return date: \(initialReturnDate), Fine per day: \(fineAmount)")
+//        print("Book issued successfully. Due date: \(dueDate), Initial return date: \(initialReturnDate), Fine per day: \(fineAmount)")
     }
     
     private func generateBarcode(bookID: String, copyNumber: Int) -> String {
