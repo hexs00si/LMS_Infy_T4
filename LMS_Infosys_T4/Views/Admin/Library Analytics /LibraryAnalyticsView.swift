@@ -4,6 +4,12 @@
 //
 //  Created by Kinshuk Garg on 25/02/25.
 //
+//
+//  LibraryAnalyticsView.swift
+//  LMS_Infosys_T4
+//
+//  Created by Kinshuk Garg on 25/02/25.
+//
 
 import SwiftUI
 import Charts
@@ -12,27 +18,55 @@ import FirebaseFirestore
 struct LibraryAnalyticsView: View {
     @StateObject private var viewModel = LibraryAnalyticsViewModel()
     @State private var timeFrame: TimeFrame = .week
+    @State private var selectedTimeRange: String = "This Month"
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    // Top Stats
+                    // Time range selector below navigation title
+                    Menu {
+                        Button("This Month", action: {
+                            viewModel.setTimeRange(to: .month)
+                            selectedTimeRange = "This Month"
+                        })
+                        Button("Last Month", action: {
+                            viewModel.setTimeRange(to: .lastMonth)
+                            selectedTimeRange = "Last Month"
+                        })
+                        Button("This Year", action: {
+                            viewModel.setTimeRange(to: .year)
+                            selectedTimeRange = "This Year"
+                        })
+                    } label: {
+                        HStack {
+                            Image(systemName: "calendar")
+                            Text(selectedTimeRange)
+                            Image(systemName: "chevron.down")
+                        }
+                        .foregroundColor(.blue)
+                        .padding(.horizontal)
+                    }
+                    
+                    // Top Stats - Fixed equal sizes
                     HStack(spacing: 16) {
                         StatCard(
                             value: "\(viewModel.stats.checkouts)",
                             label: "Checkouts"
                         )
+                        .frame(height: 100)
                         
                         StatCard(
                             value: "\(viewModel.stats.activeUsers)",
                             label: "Active\nUsers"
                         )
+                        .frame(height: 100)
                         
                         StatCard(
                             value: "$\(viewModel.stats.totalFines)",
                             label: "Total Fines"
                         )
+                        .frame(height: 100)
                     }
                     .padding(.horizontal)
                     
@@ -50,6 +84,14 @@ struct LibraryAnalyticsView: View {
                         } else {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 16) {
+                                    // Temporary Book Card
+                                    TemporaryBookCard(
+                                        title: "The Great Gatsby",
+                                        author: "F. Scott Fitzgerald",
+                                        checkouts: 42
+                                    )
+                                    
+                                    // Actual book data
                                     ForEach(viewModel.popularBooks) { book in
                                         PopularBookCard(book: book)
                                     }
@@ -200,22 +242,6 @@ struct LibraryAnalyticsView: View {
                 .padding(.vertical)
             }
             .navigationTitle("Library Analytics")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button("This Month", action: { viewModel.setTimeRange(to: .month) })
-                        Button("Last Month", action: { viewModel.setTimeRange(to: .lastMonth) })
-                        Button("This Year", action: { viewModel.setTimeRange(to: .year) })
-                    } label: {
-                        HStack {
-                            Image(systemName: "calendar")
-                            Text("This Month")
-                            Image(systemName: "chevron.down")
-                        }
-                        .foregroundColor(.blue)
-                    }
-                }
-            }
             .alert(item: $viewModel.alertItem) { alertItem in
                 Alert(
                     title: Text(alertItem.title),
@@ -251,20 +277,59 @@ struct StatCard: View {
     }
 }
 
+struct TemporaryBookCard: View {
+    let title: String
+    let author: String
+    let checkouts: Int
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ZStack {
+                Rectangle()
+                    .fill(Color.blue.opacity(0.2))
+                    .frame(width: 120, height: 160)
+                    .cornerRadius(8)
+                
+                Image(systemName: "book.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.blue.opacity(0.6))
+            }
+            
+            Text(title)
+                .font(.headline)
+                .lineLimit(1)
+            
+            Text(author)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+            
+            Text("\(checkouts) checkouts")
+                .font(.caption)
+                .foregroundColor(.blue)
+        }
+        .frame(width: 120)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+}
+
 struct PopularBookCard: View {
     let book: BookAnalytics
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let uiImage = book.getBookCoverImage() {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 120, height: 160)
-                    .cornerRadius(8)
-                    .clipped()
-            } else {
-                ZStack {
+            ZStack {
+                if let uiImage = book.getBookCoverImage() {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 120, height: 160)
+                        .cornerRadius(8)
+                        .clipped()
+                } else {
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
                         .frame(width: 120, height: 160)
@@ -290,6 +355,10 @@ struct PopularBookCard: View {
                 .foregroundColor(.blue)
         }
         .frame(width: 120)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 8)
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
     }
 }
 
