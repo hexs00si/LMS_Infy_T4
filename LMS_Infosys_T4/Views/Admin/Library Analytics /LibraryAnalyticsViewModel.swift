@@ -440,7 +440,7 @@ class LibraryAnalyticsViewModel: ObservableObject {
                 self.fetchPopularBooks()
                 
                 // Update trends based on current timeFrame
-               // self.fetchBorrowingTrends(for: self.timeFrame)
+               self.fetchBorrowingTrends(for: self.timeFrame)
             }
     }
     
