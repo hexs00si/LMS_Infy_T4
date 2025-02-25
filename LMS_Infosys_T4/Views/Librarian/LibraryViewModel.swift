@@ -199,6 +199,45 @@ class LibraryViewModel: ObservableObject {
         }
     }
     
+    func fetchUserBookRequests() async throws {
+        isLoading = true
+        error = nil
+        
+        do {
+            // Get the current logged-in user
+            guard let currentUser = Auth.auth().currentUser else {
+                throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+            }
+            
+            // Query book requests where userId matches the current user
+            let requestsSnapshot = try await db.collection("bookRequests")
+                .whereField("userId", isEqualTo: currentUser.uid)
+                .getDocuments()
+            
+            // Decode the requests
+            let userRequests = requestsSnapshot.documents.compactMap { document -> BookRequest? in
+                do {
+                    return try document.data(as: BookRequest.self)
+                } catch {
+                    print("Error decoding book request: \(error)")
+                    return nil
+                }
+            }
+            
+            // Update UI on the main thread
+            await MainActor.run {
+                self.pendingRequests = userRequests
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.error = error.localizedDescription
+                self.isLoading = false
+            }
+            throw error
+        }
+    }
+    
     func requestBook(book: Book, copyID: String) async throws {
         let db = Firestore.firestore()
         let bookRef = db.collection("books").document(book.id!)
@@ -293,107 +332,125 @@ class LibraryViewModel: ObservableObject {
     }
     
     func approveBookRequest(_ request: BookRequest) async throws {
-            // Get a new document reference for the book issue
-            let db = Firestore.firestore()
-            let newIssueRef = db.collection("bookIssues").document()
-            
-            // Get the librarian ID (current user)
-            guard let currentUser = Auth.auth().currentUser else {
-                throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-            }
-            
-            // Calculate issue and due dates
-            let issueDate = Date()
-            guard let dueDate = Calendar.current.date(byAdding: .month, value: 1, to: issueDate) else {
-                throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
-            }
-            
-            // Create book issue data
-            let bookIssueData: [String: Any] = [
-                "issueID": newIssueRef.documentID,      // Unique ID for issued book
-                "requestID": request.requestId,          // Link to original request
-                "userId": request.userId,                // ID of the user who borrowed the book
-                "bookId": request.bookId,                // Specific book copy issued
-                "libraryId": request.libraryuId,         // The library issuing the book
-                "issuedByLibrarianId": currentUser.uid,  // ID of approving librarian
-                "issueDate": Timestamp(date: issueDate), // Date book was issued
-                "dueDate": Timestamp(date: dueDate),     // Date the book must be returned
-                "returnDate": NSNull(),                  // Will be updated when returned
-                "isReturned": false,                     // Marks if the book has been returned
-                "fineAmount": 0,                         // Default fine, updated if late
-                "status": "issued"                       // Could be: "issued", "returned", "overdue"
-            ]
-            
-            // Update request status
-            let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
-            
-            // Get book reference to update copy status
-            let bookIDComponents = request.bookId.split(separator: "-")
-            guard bookIDComponents.count >= 2,
-                  let mainBookID = bookIDComponents.first else {
-                throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
-            }
-            
-            let bookRef = db.collection("books").document(String(mainBookID))
-            let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
-            
-            // Create a batch to handle all updates
-            let batch = db.batch()
-            
-            // Add book issue record
-            batch.setData(bookIssueData, forDocument: newIssueRef)
-            
-            // Update request with approved status
-            batch.updateData([
-                "status": "approved",
-                "approvedByLibrarianId": currentUser.uid
-            ], forDocument: requestRef)
-            
-            // Update book copy status
-            batch.updateData([
-                "status": "checked out"
-            ], forDocument: bookCopyRef)
-            
-            // Commit all changes
-            try await batch.commit()
+        // Get a new document reference for the book issue
+        let db = Firestore.firestore()
+        let newIssueRef = db.collection("bookIssues").document()
+        
+        // Get the librarian ID (current user)
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
         
-        func rejectBookRequest(_ request: BookRequest) async throws {
-            let db = Firestore.firestore()
-            
-            // Get the librarian ID (current user)
-            guard let currentUser = Auth.auth().currentUser else {
-                throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-            }
-            
-            // Update request status
-            let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
-            
-            // Get book reference to update copy status back to available
-            let bookIDComponents = request.bookId.split(separator: "-")
-            guard bookIDComponents.count >= 2,
-                  let mainBookID = bookIDComponents.first else {
-                throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
-            }
-            
-            let bookRef = db.collection("books").document(String(mainBookID))
-            let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
-            
-            // Create a batch to handle all updates
-            let batch = db.batch()
-            
-            // Update request with rejected status
-            batch.updateData([
-                "status": "rejected",
-                "approvedByLibrarianId": currentUser.uid
-            ], forDocument: requestRef)
-            
-            // Update book copy status back to available
-            batch.updateData([
-                "status": "available"
-            ], forDocument: bookCopyRef)
-            
-            // Commit all changes
-            try await batch.commit()
+        // Calculate issue and due dates
+        let issueDate = Date()
+        guard let dueDate = Calendar.current.date(byAdding: .month, value: 1, to: issueDate) else {
+            throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
         }
+        
+        // Create book issue data
+        let bookIssueData: [String: Any] = [
+            "issueID": newIssueRef.documentID,      // Unique ID for issued book
+            "requestID": request.requestId,          // Link to original request
+            "userId": request.userId,                // ID of the user who borrowed the book
+            "bookId": request.bookId,                // Specific book copy issued
+            "libraryId": request.libraryuId,         // The library issuing the book
+            "issuedByLibrarianId": currentUser.uid,  // ID of approving librarian
+            "issueDate": Timestamp(date: issueDate), // Date book was issued
+            "dueDate": Timestamp(date: dueDate),     // Date the book must be returned
+            "returnDate": NSNull(),                  // Will be updated when returned
+            "isReturned": false,                     // Marks if the book has been returned
+            "fineAmount": 0,                         // Default fine, updated if late
+            "status": "issued"                       // Could be: "issued", "returned", "overdue"
+        ]
+        
+        // Update request status
+        let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
+        
+        // Get book reference to update copy status
+        let bookIDComponents = request.bookId.split(separator: "-")
+        guard bookIDComponents.count >= 2,
+              let mainBookID = bookIDComponents.first else {
+            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+        }
+        
+        let bookRef = db.collection("books").document(String(mainBookID))
+        let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
+        
+        // Create a batch to handle all updates
+        let batch = db.batch()
+        
+        // Add book issue record
+        batch.setData(bookIssueData, forDocument: newIssueRef)
+        
+        // Update request with approved status
+        batch.updateData([
+            "status": "approved",
+            "approvedByLibrarianId": currentUser.uid
+        ], forDocument: requestRef)
+        
+        // Update book copy status
+        batch.updateData([
+            "status": "checked out"
+        ], forDocument: bookCopyRef)
+        
+        // Commit all changes
+        try await batch.commit()
+    }
+
+    func rejectBookRequest(_ request: BookRequest) async throws {
+        let db = Firestore.firestore()
+        
+        // Get the librarian ID (current user)
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        // Update request status
+        let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
+        
+        // Get book reference to update copy status back to available
+        let bookIDComponents = request.bookId.split(separator: "-")
+        guard bookIDComponents.count >= 2,
+              let mainBookID = bookIDComponents.first else {
+            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+        }
+        
+        let bookRef = db.collection("books").document(String(mainBookID))
+        let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
+        
+        // Create a batch to handle all updates
+        let batch = db.batch()
+        
+        // Update request with rejected status
+        batch.updateData([
+            "status": "rejected",
+            "approvedByLibrarianId": currentUser.uid
+        ], forDocument: requestRef)
+        
+        // Update book copy status back to available
+        batch.updateData([
+            "status": "available"
+        ], forDocument: bookCopyRef)
+        
+        // Commit all changes
+        try await batch.commit()
+    }
+    
+    func fetchLibraryDetails(byId id: String) async throws -> String {
+        let documentRef = db.collection("libraries").document(id)
+        
+        do {
+            let documentSnapshot = try await documentRef.getDocument()
+            
+            // Ensure data exists
+            guard let data = documentSnapshot.data(),
+                  let libraryName = data["name"] as? String else {
+                throw NSError(domain: "FirestoreError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Library not found"])
+            }
+            
+            return libraryName
+        } catch {
+            throw error
+        }
+    }
 }

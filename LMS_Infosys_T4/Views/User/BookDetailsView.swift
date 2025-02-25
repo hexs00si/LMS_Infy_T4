@@ -6,6 +6,7 @@ struct BookDetailsView: View {
     @State private var isLoading = false
     @State private var showAlert = false
     @State private var alertMessage = ""
+    @State private var libraryName: String = "Loading..."
 
     var body: some View {
         GeometryReader { geometry in
@@ -95,6 +96,16 @@ struct BookDetailsView: View {
                                 Text("\(book.availableCopies)")
                                     .font(.subheadline)
                             }
+                            
+                            HStack {
+                                Text("Library")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Spacer()
+                                Text("\(libraryName)")
+                                    .font(.subheadline)
+                            }
+
                         }
                         .padding()
                         .background(Color(.systemGray6))
@@ -165,6 +176,17 @@ struct BookDetailsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Library"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+            }
+            .onAppear {
+                Task {
+                    do {
+                        libraryName = try await viewModel.fetchLibraryDetails(byId: book.libraryID)
+                    } catch {
+                        libraryName = "Error fetching details"
+                        print(book.libraryID)
+                        print("Error fetching library details: \(error.localizedDescription)")
+                    }
+                }
             }
         }
     }
