@@ -236,6 +236,7 @@ class LibraryViewModel: ObservableObject {
             "returnDate": Timestamp(date: initialReturnDate), // Initially issueDate - 1 day
             "isReturned": false,
             "fineAmount": fineAmount // Added fine amount from library document
+            
         ]
         
         // Perform Firestore batch operation
