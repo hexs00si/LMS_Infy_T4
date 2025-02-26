@@ -18,7 +18,7 @@ struct ReportsView: View {
                 Button(action: {
                     showingSignOutAlert = true
                 }) {
-                    Image(systemName: "arrow.forward.square")
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
                         .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }

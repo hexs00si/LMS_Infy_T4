@@ -16,6 +16,7 @@ struct LibraryDetailView: View {
     @State private var editedLoanDuration: Int
     @State private var editedIsActive: Bool
     @State private var showLocationPicker = false
+    @State private var librarianName: String = "Librarian not added"
     
     // Map related states
     @State private var selectedCoordinate: CLLocationCoordinate2D?
@@ -106,10 +107,12 @@ struct LibraryDetailView: View {
                         }
                         .frame(height: 150)
                         .cornerRadius(8)
+                        
+                        LabeledContent("Librarian", value: librarianName)
                     }
                 }
                 
-                Section(header: Text("CONFIGURATION")) {
+                Section(header: Text("LIBRARY POLICIES")) {
                     if isEditing {
                         HStack {
                             Text("₹")
@@ -128,7 +131,6 @@ struct LibraryDetailView: View {
                         LabeledContent("Fine Per Day", value: "₹\(String(format: "%.2f", library.finePerDay))")
                         LabeledContent("Max Books Per User", value: "\(library.maxBooksPerUser)")
                         LabeledContent("Loan Duration", value: "\(library.loanDuration) days")
-                        LabeledContent("Total Books", value: "\(library.totalBooks)")
                     }
                 }
                 
@@ -139,6 +141,7 @@ struct LibraryDetailView: View {
                         LabeledContent("Active", value: library.isActive ? "Yes" : "No")
                     }
                     LabeledContent("Last Updated", value: library.lastUpdated.formatted(date: .long, time: .shortened))
+                    LabeledContent("Total Books", value: "\(library.totalBooks)")
                 }
                 
                 if !isEditing {
@@ -169,6 +172,9 @@ struct LibraryDetailView: View {
                     }
                 }
             )
+            .onAppear {
+                fetchLibrarian()
+            }
             .alert("Delete Library", isPresented: $showingDeleteAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {
@@ -192,6 +198,32 @@ struct LibraryDetailView: View {
                 )
             }
         }
+    }
+    
+    private func fetchLibrarian() {
+        let db = Firestore.firestore()
+        db.collection("librarians")
+            .whereField("libraryID", isEqualTo: library.id ?? "")
+            .limit(to: 1) // Only fetch one librarian
+            .getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error fetching librarian: \(error.localizedDescription)")
+                    librarianName = "Librarian not assigned"
+                    return
+                }
+                
+                if let document = snapshot?.documents.first {
+                    do {
+                        let librarian = try document.data(as: Librarian.self)
+                        librarianName = librarian.name
+                    } catch {
+                        print("Error decoding librarian: \(error)")
+                        librarianName = "Librarian not assigned"
+                    }
+                } else {
+                    librarianName = "Librarian not assigned"
+                }
+            }
     }
     
     private func saveChanges() {
