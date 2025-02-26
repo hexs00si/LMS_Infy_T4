@@ -75,7 +75,7 @@ struct BookDetailsView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                                 Spacer()
-                                Text("\(book.publishYear)")
+                                Text(String(describing: book.publishYear))
                                     .font(.subheadline)
                             }
 

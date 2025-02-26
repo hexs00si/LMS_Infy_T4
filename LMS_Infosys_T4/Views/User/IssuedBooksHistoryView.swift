@@ -19,18 +19,34 @@ struct IssuedBook: Identifiable {
     let coverImageURL: String
     let isReturned: Bool
     let isApproved: Bool
+    let issueDate: Date
+}
+
+// Define enums for filter and sort options
+enum BookStatus: String, CaseIterable, Identifiable {
+    case all = "All"
+    case pending = "Pending"
+    case issued = "Issued"
+    case returned = "Returned"
     
-    // You can add more fields if needed
-    // var requestDate: Date?
-    // var issueDate: Date?
-    // var dueDate: Date?
-    // var status: String
+    var id: String { self.rawValue }
+}
+
+enum SortOption: String, CaseIterable, Identifiable {
+    case newest = "Newest First"
+    case oldest = "Oldest First"
+    
+    var id: String { self.rawValue }
 }
 
 struct IssuedBooksHistoryView: View {
     @StateObject private var viewModel = LibraryViewModel()
     @State private var issuedBooks: [IssuedBook] = []
     @State private var showingIssueBookView = false
+    // Add these state variables at the top of your IssuedBooksHistoryView struct
+    @State private var showingFilterOptions = false
+    @State private var filterStatus: BookStatus = .all
+    @State private var sortBy: SortOption = .newest
     
     var body: some View {
         NavigationView {
@@ -96,9 +112,23 @@ struct IssuedBooksHistoryView: View {
                 }
                 .navigationTitle("Issue Books")
                 .toolbar {
-                    Button("Request Book") {
-                        showingIssueBookView = true
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            showingIssueBookView = true
+                        }) {
+                            Label("Issue Book", image: "custom.text.book.closed.badge.plus")
+                        }
                     }
+                    
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: { showingFilterOptions = true }) {
+                            Label("Filter", systemImage: "line.3.horizontal.decrease.circle")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showingFilterOptions) {
+                    FilterView(filterStatus: $filterStatus, sortBy: $sortBy, applyFilters: applyFilters)
                 }
                 .sheet(isPresented: $showingIssueBookView) {
                     IssueBookView(viewModel: viewModel)
@@ -174,7 +204,10 @@ struct IssuedBooksHistoryView: View {
                 let bookDoc = try await db.collection("books").document(String(mainBookId)).getDocument()
                 guard let bookData = bookDoc.data() else { continue }
                 
-                // Create IssuedBook object from the request
+                // Parse the requestDate from the BookRequest
+                let issueDate = request.requestDate
+
+                // Include in the IssuedBook constructor
                 let book = IssuedBook(
                     id: request.id ?? request.requestId,
                     bookID: request.bookId,
@@ -183,7 +216,8 @@ struct IssuedBooksHistoryView: View {
                     isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
                     coverImageURL: bookData["coverImage"] as? String ?? "",
                     isReturned: false,
-                    isApproved: request.status == "approved"
+                    isApproved: request.status == "approved",
+                    issueDate: issueDate
                 )
                 
                 tempIssuedBooks.append(book)
@@ -221,7 +255,11 @@ struct IssuedBooksHistoryView: View {
                 let bookDoc = try await db.collection("books").document(String(mainBookId)).getDocument()
                 guard let bookData = bookDoc.data() else { continue }
                 
-                // Create IssuedBook object
+                // Get issue date from the document
+                let issueDateTimestamp = data["issueDate"] as? Timestamp
+                let issueDate = issueDateTimestamp?.dateValue() ?? Date()
+
+                // Include in the IssuedBook constructor
                 let book = IssuedBook(
                     id: document.documentID,
                     bookID: bookId,
@@ -230,7 +268,8 @@ struct IssuedBooksHistoryView: View {
                     isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
                     coverImageURL: bookData["coverImage"] as? String ?? "",
                     isReturned: isReturned,
-                    isApproved: true  // Issues are always approved
+                    isApproved: true,
+                    issueDate: issueDate
                 )
                 
                 bookIssuesData.append(book)
@@ -247,6 +286,106 @@ struct IssuedBooksHistoryView: View {
             }
         } catch {
             print("Error fetching issued books: \(error.localizedDescription)")
+        }
+    }
+    
+    func applyFilters() {
+        Task {
+            await fetchUserBooksHistory()
+            
+            DispatchQueue.main.async {
+                // Filter by status
+                if self.filterStatus != .all {
+                    self.issuedBooks = self.issuedBooks.filter { book in
+                        switch self.filterStatus {
+                        case .pending:
+                            return !book.isApproved
+                        case .issued:
+                            return book.isApproved && !book.isReturned
+                        case .returned:
+                            return book.isApproved && book.isReturned
+                        case .all:
+                            return true
+                        }
+                    }
+                }
+                
+                // Sort by date
+                self.issuedBooks.sort { book1, book2 in
+                    switch self.sortBy {
+                    case .newest:
+                        return book1.issueDate > book2.issueDate
+                    case .oldest:
+                        return book1.issueDate < book2.issueDate
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct FilterView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var filterStatus: BookStatus
+    @Binding var sortBy: SortOption
+    var applyFilters: () -> Void
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Filter by Status")) {
+                    ForEach(BookStatus.allCases) { status in
+                        Button {
+                            filterStatus = status
+                        } label: {
+                            HStack {
+                                Text(status.rawValue)
+                                Spacer()
+                                if filterStatus == status {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+                
+                Section(header: Text("Sort by")) {
+                    ForEach(SortOption.allCases) { option in
+                        Button {
+                            sortBy = option
+                        } label: {
+                            HStack {
+                                Text(option.rawValue)
+                                Spacer()
+                                if sortBy == option {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
+            .navigationTitle("Filter Books")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Apply") {
+                        applyFilters()
+                        dismiss()
+                    }
+                    .bold()
+                }
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }
