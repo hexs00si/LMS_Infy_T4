@@ -7,6 +7,12 @@ struct AdminDashboardView: View {
 
     var body: some View {
         TabView {
+            ReportsView(isPresented: $isReportsViewPresented) // Pass the binding
+                .environmentObject(authViewModel)
+                .tabItem {
+                    Image(systemName: "chart.bar.fill")
+                    Text("Reports")
+                }
             LibrariesView()
                 .environmentObject(authViewModel)
                 .tabItem {
@@ -21,12 +27,12 @@ struct AdminDashboardView: View {
                     Text("Librarians")
                 }
 
-            ReportsView(isPresented: $isReportsViewPresented) // Pass the binding
-                .environmentObject(authViewModel)
-                .tabItem {
-                    Image(systemName: "chart.bar.fill")
-                    Text("Reports")
-                }
+//            ReportsView(isPresented: $isReportsViewPresented) // Pass the binding
+//                .environmentObject(authViewModel)
+//                .tabItem {
+//                    Image(systemName: "chart.bar.fill")
+//                    Text("Reports")
+//                }
         }
         .navigationBarBackButtonHidden(true) // Prevent going back to login
     }

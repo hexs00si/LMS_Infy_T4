@@ -200,18 +200,18 @@ struct BookCard: View {
 //}
 
 struct MainTabView: View {
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor.white  // Ensures the background is white
-        appearance.stackedLayoutAppearance.selected.iconColor = .black
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.black]
-        appearance.stackedLayoutAppearance.normal.iconColor = .lightGray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.lightGray]
-        
-        UITabBar.appearance().standardAppearance = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
+//    init() {
+//        let appearance = UITabBarAppearance()
+//        appearance.configureWithOpaqueBackground()
+//        appearance.backgroundColor = UIColor.white  // Ensures the background is white
+//        appearance.stackedLayoutAppearance.selected.iconColor = .black
+//        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.black]
+//        appearance.stackedLayoutAppearance.normal.iconColor = .lightGray
+//        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.lightGray]
+//        
+//        UITabBar.appearance().standardAppearance = appearance
+//        UITabBar.appearance().scrollEdgeAppearance = appearance
+//    }
 
     var body: some View {
         TabView {
@@ -230,7 +230,7 @@ struct MainTabView: View {
                     Label("Issue Books", systemImage: "book.closed")
                 }
 
-            Text("Profile")
+            UserProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }

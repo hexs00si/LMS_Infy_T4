@@ -2,8 +2,6 @@
 //  LibrarianDetailView.swift
 //  LMS_Infosys_T4
 //
-//  Created by Gaganveer Bawa on 23/02/25.
-//
 
 import SwiftUI
 
@@ -43,6 +41,13 @@ struct LibrarianDetailView: View {
                         LabeledContent("Name", value: librarian.name)
                         LabeledContent("Gender", value: librarian.gender)
                         LabeledContent("Phone", value: librarian.phoneNumber)
+                    }
+                }
+                
+                Section(header: Text("LIBRARY ASSIGNMENT")) {
+                    LabeledContent("Library", value: librarian.libraryName ?? "Unknown Library")
+                    if let location = librarian.libraryLocation {
+                        LabeledContent("Location", value: location)
                     }
                 }
                 
