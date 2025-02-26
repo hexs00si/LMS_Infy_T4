@@ -16,7 +16,7 @@ struct IssuedBook: Identifiable {
     let title: String
     let author: String
     let isbn: String
-    let coverImageURL: String
+    let coverImage: String
     let isReturned: Bool
     let isApproved: Bool
     let issueDate: Date
@@ -53,22 +53,21 @@ struct IssuedBooksHistoryView: View {
             ZStack {
                 List(issuedBooks) { book in
                     HStack {
-                        if let url = URL(string: book.coverImageURL) {
-                            AsyncImage(url: url) { image in
-                                image.resizable()
-                                    .scaledToFit()
-                                    .frame(width: 50, height: 70)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            } placeholder: {
-                                Color.gray.frame(width: 50, height: 70)
-                            }
-                        } else {
-                            // Default image if no cover available
-                            Rectangle()
-                                .fill(Color.gray.opacity(0.3))
-                                .frame(width: 50, height: 70)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
+                       // Display book cover image from base64 string
+                       if let imageData = Data(base64Encoded: book.coverImage),
+                          let uiImage = UIImage(data: imageData) {
+                           Image(uiImage: uiImage)
+                               .resizable()
+                               .scaledToFit()
+                               .frame(width: 50, height: 70)
+                               .clipShape(RoundedRectangle(cornerRadius: 8))
+                       } else {
+                           // Default image if no cover available
+                           Rectangle()
+                               .fill(Color.gray.opacity(0.3))
+                               .frame(width: 50, height: 70)
+                               .clipShape(RoundedRectangle(cornerRadius: 8))
+                       }
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(book.title).font(.headline)
@@ -186,13 +185,14 @@ struct IssuedBooksHistoryView: View {
     
     func fetchUserBooksHistory() async {
         do {
-            // Use the existing fetchUserBookRequests method
+            // Clear the issuedBooks array before fetching new data
+            DispatchQueue.main.async {
+                self.issuedBooks = []
+            }
+            
+            // Fetch user book requests and issued books
             try await viewModel.fetchUserBookRequests()
-            
-            // Convert BookRequests to IssuedBooks
             await fetchBookDetailsForRequests()
-            
-            // Add book issues too if needed
             await fetchIssuedBooks()
             
         } catch {
@@ -224,7 +224,7 @@ struct IssuedBooksHistoryView: View {
                     title: bookData["title"] as? String ?? "Unknown Title",
                     author: bookData["author"] as? String ?? "Unknown Author",
                     isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
-                    coverImageURL: bookData["coverImage"] as? String ?? "",
+                    coverImage: bookData["coverImage"] as? String ?? "",
                     isReturned: false,
                     isApproved: request.status == "approved",
                     issueDate: issueDate
@@ -276,7 +276,7 @@ struct IssuedBooksHistoryView: View {
                     title: bookData["title"] as? String ?? "Unknown Title",
                     author: bookData["author"] as? String ?? "Unknown Author",
                     isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
-                    coverImageURL: bookData["coverImage"] as? String ?? "",
+                    coverImage: bookData["coverImage"] as? String ?? "",
                     isReturned: isReturned,
                     isApproved: true,
                     issueDate: issueDate

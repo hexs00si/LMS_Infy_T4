@@ -5,45 +5,36 @@
 //  Created by Gaganveer Bawa on 13/02/25.
 //
 
-import Foundation
-import FirebaseFirestore
-import Swift
-
-
-
-//struct Librarian: Codable, Identifiable {
+//import Foundation
+//import FirebaseFirestore
+//import Swift
+//
+//struct Librarian: Identifiable, Codable {
 //    @DocumentID var id: String?
+//    let uid: String
 //    let libraryID: String
-//    let image: String
 //    let email: String
-//    let password: String
-//    let name: String
-//    let gender: String
-//    let phoneNumber: String
+//    var name: String
+//    var gender: String
+//    var phoneNumber: String
+//    var image: String?
 //    let joinDate: Date
 //    
-//    enum CodingKeys: String, CodingKey {
-//        case id = "uid"
-//        case libraryID, image, email, password
-//        case name, gender, phoneNumber, joinDate
-//    }
-//}
-
-
-//struct Librarian: Identifiable {
-//    let id: UUID
-//    var name: String
-//    var library: String
-//    var email: String
-//    var contactNumber: String
-//    var image: String?
+//    // Library information - not stored in Firestore, but populated after fetch
+//    var libraryName: String?
+//    var libraryLocation: String?
 //    
-//    init(id: UUID = UUID(), name: String, library: String, email: String, contactNumber: String, image: String? = nil) {
-//        self.id = id
-//        self.name = name
-//        self.library = library
-//        self.email = email
-//        self.contactNumber = contactNumber
-//        self.image = image
+//    enum CodingKeys: String, CodingKey {
+//        case id
+//        case uid
+//        case libraryID
+//        case email
+//        case name
+//        case gender
+//        case phoneNumber
+//        case image
+//        case joinDate
+//        // libraryName and libraryLocation are not included in CodingKeys
+//        // as they are not stored in Firestore
 //    }
 //}

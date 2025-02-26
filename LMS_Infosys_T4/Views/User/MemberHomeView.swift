@@ -46,13 +46,13 @@ struct MemberHomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
                 trailing: HStack {
-                    Button(action: {
-                        print("Bell icon tapped")
-                    }) {
-                        Image(systemName: "bell.fill")
-                            .font(.title2)
-                            .foregroundColor(.black)
-                    }
+//                    Button(action: {
+//                        print("Bell icon tapped")
+//                    }) {
+//                        Image(systemName: "bell.fill")
+//                            .font(.title2)
+//                            .foregroundColor(.black)
+//                    }
                     
                     Button(action: {
                         showingGenreFilter.toggle()
@@ -69,6 +69,18 @@ struct MemberHomeView: View {
             .onAppear {
                 viewModel.fetchBooks() // Fetch books when the view appears
             }
+            .refreshable {
+               await refreshData()
+           }
+            
+        }
+    }
+    
+    private func refreshData() async {
+        do {
+            try await viewModel.fetchBooks()
+        } catch {
+            print("Error refreshing books: \(error.localizedDescription)")
         }
     }
 }
@@ -139,12 +151,13 @@ struct BookCard: View {
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Text(book.availabilityStatus.description)  // Using the description property
+                // Update to check availableCopies instead of availabilityStatus
+                Text(book.availableCopies > 0 ? "Available" : "Unavailable")
                     .font(.caption)
                     .padding(4)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .background(book.availabilityStatus == .available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                    .foregroundColor(book.availabilityStatus == .available ? .green : .red)
+                    .background(book.availableCopies > 0 ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                    .foregroundColor(book.availableCopies > 0 ? .green : .red)
                     .cornerRadius(6)
             }
             .padding()
@@ -157,62 +170,7 @@ struct BookCard: View {
     }
 }
 
-//
-//struct BookCard: View {
-//    let book: Book
-//    
-//    var body: some View {
-//        NavigationLink(destination: BookDetailsView(book: book)) {
-//            VStack(alignment: .center) {
-//                Image(systemName: book.coverImage ?? "book")
-//                    .resizable()
-//                    .scaledToFill()
-//                    .frame(width: 150, height: 160)
-//                    .clipped()
-//                    .cornerRadius(12)
-//                
-//                Text(book.title)
-//                    .font(.headline)
-//                    .lineLimit(2)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//                
-//                Text(book.author)
-//                    .font(.subheadline)
-//                    .foregroundColor(.gray)
-//                    .frame(maxWidth: .infinity, alignment: .leading)
-//                
-//                Text("\(book.availabilityStatus)")
-//                    .font(.caption)
-//                    .padding(4)
-//                    .frame(maxWidth: .infinity, alignment: .center)
-//                    .background(book.availabilityStatus == AvailabilityStatus.available ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-//                    .foregroundColor(book.availabilityStatus == AvailabilityStatus.available ? .green : .red)
-//                    .cornerRadius(6)
-//            }
-//            .padding()
-//            .frame(width: 170, height: 275)
-//            .background(Color.white)
-//            .cornerRadius(12)
-//            .shadow(radius: 2)
-//        }
-//        .buttonStyle(PlainButtonStyle()) // Removes default navigation link styling
-//    }
-//}
-
 struct MainTabView: View {
-//    init() {
-//        let appearance = UITabBarAppearance()
-//        appearance.configureWithOpaqueBackground()
-//        appearance.backgroundColor = UIColor.white  // Ensures the background is white
-//        appearance.stackedLayoutAppearance.selected.iconColor = .black
-//        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.black]
-//        appearance.stackedLayoutAppearance.normal.iconColor = .lightGray
-//        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.lightGray]
-//        
-//        UITabBar.appearance().standardAppearance = appearance
-//        UITabBar.appearance().scrollEdgeAppearance = appearance
-//    }
-
     var body: some View {
         TabView {
             MemberHomeView()
