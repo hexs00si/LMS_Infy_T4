@@ -72,6 +72,7 @@ struct LibrariansView: View {
             .onAppear {
                 viewModel.fetchLibrarians() // Ensure data is up-to-date when the view appears
             }
+            .navigationBarBackButtonHidden(true) // Add this line to prevent going back to login
         }
     }
 }

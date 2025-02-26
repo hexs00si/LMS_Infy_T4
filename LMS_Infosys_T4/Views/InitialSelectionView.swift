@@ -1,15 +1,9 @@
-//
-//  InitialSelectionView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 18/02/25.
-//
 import SwiftUI
 
 struct InitialSelectionView: View {
-    @State private var navigateToLogin = false
-    @State private var isUser = false
-    
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @Binding var selectedRole: Bool?
+
     var body: some View {
         VStack(spacing: 30) {
             Spacer()
@@ -18,18 +12,16 @@ struct InitialSelectionView: View {
                 .scaledToFit()
                 .frame(width: 200, height: 200)
                 .foregroundColor(.black)
-            
-            // Welcome Text
+
             Text("Welcome to Library")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-            
+
             Spacer()
-            
+
             Button(action: {
-                isUser = true
-                navigateToLogin = true
+                selectedRole = true // User
             }) {
                 Text("I'm a User")
                     .foregroundColor(.white)
@@ -38,10 +30,10 @@ struct InitialSelectionView: View {
                     .background(Color.black)
                     .cornerRadius(10)
             }
-            
+            .buttonStyle(ScaleButtonStyle())
+
             Button(action: {
-                isUser = false
-                navigateToLogin = true
+                selectedRole = false // Staff
             }) {
                 Text("I'm a Staff")
                     .foregroundColor(.white)
@@ -55,12 +47,18 @@ struct InitialSelectionView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 40)
         .navigationBarHidden(true)
-        .fullScreenCover(isPresented: $navigateToLogin) {
-            LoginView(isUser: $isUser)
-        }
+    }
+}
+
+struct ScaleButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }
 
 #Preview {
-    InitialSelectionView()
+    InitialSelectionView(selectedRole: .constant(nil))
+        .environmentObject(AuthViewModel())
 }
