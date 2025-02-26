@@ -192,7 +192,11 @@ struct IssuedBooksHistoryView: View {
             
             // Fetch user book requests and issued books
             try await viewModel.fetchUserBookRequests()
+            
+            // Convert BookRequests to IssuedBooks
             await fetchBookDetailsForRequests()
+            
+            // Add book issues too if needed
             await fetchIssuedBooks()
             
         } catch {

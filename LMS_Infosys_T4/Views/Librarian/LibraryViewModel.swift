@@ -281,6 +281,7 @@ class LibraryViewModel: ObservableObject {
             throw error
         }
     }
+    
     func requestBook(book: Book, copyID: String) async throws {
         let db = Firestore.firestore()
         let bookRef = db.collection("books").document(book.id!)
@@ -344,6 +345,7 @@ class LibraryViewModel: ObservableObject {
             }
     }
     func approveBookRequest(_ request: BookRequest) async throws {
+        // Get a new document reference for the book issue
         let db = Firestore.firestore()
         let newIssueRef = db.collection("bookIssues").document()
         
