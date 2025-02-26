@@ -1,23 +1,3 @@
-//
-//  BookRequestsView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Gaganveer Bawa on 25/02/25.
-//
-
-//
-//  BookRequestsView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Gaganveer Bawa on 25/02/25.
-//
-
-//
-//  BookRequestsView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Gaganveer Bawa on 25/02/25.
-//
 
 import SwiftUI
 import FirebaseFirestore
@@ -33,6 +13,27 @@ struct BookRequestsView: View {
     @State private var alertMessage = ""
     @State private var showAlert = false
     @State private var selectedTab: RequestTab = .bookRequests
+    @State private var searchText = ""
+    
+//    func filterRequests(by searchText: String) -> [BookRequest] {
+//        guard !searchText.isEmpty else { return pendingRequests }
+//        
+//        return pendingRequests.filter { request in
+//            let bookTitle = books[request.bookId]?.title.lowercased() ?? ""
+//            let bookAuthor = books[request.bookId]?.author.lowercased() ?? ""
+//            let bookISBN = books[request.bookId]?.isbn.lowercased() ?? ""
+//            let userName = users[request.userId]?.name.lowercased() ?? ""
+//            let userEmail = users[request.userId]?.email.lowercased() ?? ""
+//            
+//            let lowercasedSearch = searchText.lowercased()
+//            
+//            return bookTitle.contains(lowercasedSearch) ||
+//                   bookAuthor.contains(lowercasedSearch) ||
+//                   bookISBN.contains(lowercasedSearch) ||
+//                   userName.contains(lowercasedSearch) ||
+//                   userEmail.contains(lowercasedSearch)
+//        }
+//    }
     
     // Grid layout configuration
     private let columns = [
@@ -44,12 +45,14 @@ struct BookRequestsView: View {
             VStack {
                 // Segmented control for switching between requests and reservations
                 Picker("Request Type", selection: $selectedTab) {
-                    Text("Book Requests").tag(RequestTab.bookRequests)
+                    Text("Issue Requests").tag(RequestTab.bookRequests)
                     Text("Reservations").tag(RequestTab.reservations)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
                 .padding(.top, 8)
+                
+                SearchBar(text: $searchText, placeholder: "Search by member or book...")
                 
                 ScrollView {
                     if viewModel.isLoading {
@@ -74,8 +77,10 @@ struct BookRequestsView: View {
                     await refreshData()
                 }
             }
-            .navigationTitle(selectedTab == .bookRequests ? "Book Requests" : "Book Reservations")
-            .background(Color(.systemGroupedBackground))
+            .navigationTitle(selectedTab == .bookRequests ? "Issue Requests" : "Book Reservations")
+//            .background(Color(.systemGroupedBackground))
+            .background(Color(.secondarySystemGroupedBackground))
+
             .alert(alertMessage, isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
             }
