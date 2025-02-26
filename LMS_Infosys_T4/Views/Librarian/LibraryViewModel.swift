@@ -457,6 +457,82 @@ class LibraryViewModel: ObservableObject {
         try await batch.commit()
     }
     
+//    func rejectBookRequest(_ request: BookRequest) async throws {
+//        let db = Firestore.firestore()
+//        
+//        // Get the librarian ID (current user)
+//        guard let currentUser = Auth.auth().currentUser else {
+//            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+//        }
+//        
+//        // Update request status
+//        let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
+//        
+//        // Get book reference to update copy status back to available
+//        let bookIDComponents = request.bookId.split(separator: "-")
+//        guard bookIDComponents.count >= 2,
+//              let mainBookID = bookIDComponents.first else {
+//            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+//        }
+//        
+//        let bookRef = db.collection("books").document(String(mainBookID))
+//        let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
+//        
+//        // Create a batch to handle all updates
+//        let batch = db.batch()
+//        
+//        // Update request with rejected status
+//        batch.updateData([
+//            "status": "rejected",
+//            "approvedByLibrarianId": currentUser.uid
+//        ], forDocument: requestRef)
+//        
+//        // Update book copy status back to available
+//        batch.updateData(["status": "available"], forDocument: bookCopyRef)
+//        
+//        // Commit all changes
+//        try await batch.commit()
+//    }
+//    
+//    func rejectBookRequest(_ request: BookRequest) async throws {
+//        let db = Firestore.firestore()
+//        
+//        // Get the librarian ID (current user)
+//        guard let currentUser = Auth.auth().currentUser else {
+//            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+//        }
+//        
+//        // Update request status
+//        let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
+//        
+//        // Get book reference to update copy status back to available
+//        let bookIDComponents = request.bookId.split(separator: "-")
+//        guard bookIDComponents.count >= 2,
+//              let mainBookID = bookIDComponents.first else {
+//            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+//        }
+//        
+//        let bookRef = db.collection("books").document(String(mainBookID))
+//        let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
+//        
+//        // Create a batch to handle all updates
+//        let batch = db.batch()
+//        
+//        // Update request with rejected status
+//        batch.updateData([
+//            "status": "rejected",
+//            "approvedByLibrarianId": currentUser.uid
+//        ], forDocument: requestRef)
+//        
+//        // Update book copy status back to available
+//        batch.updateData([
+//            "status": "available"
+//        ], forDocument: bookCopyRef)
+//        
+//        // Commit all changes
+//        try await batch.commit()
+//    }
+    
     func fetchLibraryDetails(byId id: String) async throws -> String {
         let documentRef = db.collection("libraries").document(id)
         
