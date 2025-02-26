@@ -205,6 +205,14 @@ struct LibrarianDashboardView: View {
             }
             
             NavigationView {
+//                ReturnView()
+                ReturnBookView(viewModel: viewModel)
+            }
+            .tabItem {
+                Label("Return", image: "custom.text.book.closed.fill.badge.arrow.up")
+            }
+            
+            NavigationView {
                 ProfileView()
             }
             .tabItem {

@@ -18,22 +18,9 @@
 		DB62D62C2D647FF100C8191E /* LMS_Infosys_T4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LMS_Infosys_T4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		F0E113D42D683538002F8D8F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Models/LibraryModels/Librarian.swift,
-			);
-			target = DB62D62B2D647FF100C8191E /* LMS_Infosys_T4 */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB62D62E2D647FF100C8191E /* LMS_Infosys_T4 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				F0E113D42D683538002F8D8F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */,
-			);
 			path = LMS_Infosys_T4;
 			sourceTree = "<group>";
 		};
@@ -292,10 +279,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 666JNQ5YGA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
@@ -311,7 +299,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcdsjk;
+				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcdsjkfgdfsa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -328,10 +316,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 666JNQ5YGA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
@@ -347,7 +336,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcdsjk;
+				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcdsjkfgdfsa;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

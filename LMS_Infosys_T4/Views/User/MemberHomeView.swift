@@ -178,7 +178,7 @@ struct MainTabView: View {
                     Label("Home", systemImage: "house.fill")
                 }
 
-            Text("Bookshelf")
+            BookShelf()
                 .tabItem {
                     Label("Bookshelf", systemImage: "books.vertical.fill")
                 }

@@ -21,6 +21,50 @@ struct BookDetailsView: View {
 
                         // Book Description
                         BookDescriptionView(book: book)
+                        
+                        // New Section for User Actions
+                        VStack(spacing: 16) {
+                            Text("Manage Your Reading")
+                                .font(.headline)
+                                .padding(.top)
+
+                            Button(action: {
+                                addToWishlist()
+                            }) {
+                                Text("Want to Read")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+
+                            Button(action: {
+                                markAsCurrentlyReading()
+                            }) {
+                                Text("Currently Reading")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+
+                            Button(action: {
+                                markAsCompleted()
+                            }) {
+                                Text("Completed")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal)
 
                         Spacer() // Pushes the button to the bottom
                             .frame(height: 80) // Keeps space for the button
@@ -55,7 +99,48 @@ struct BookDetailsView: View {
             }
         }
     }
+    
+    private func addToWishlist() {
+        Task {
+            do {
+                try await viewModel.addToWishlist(book: book)
+                alertMessage = "Added to Want to Read"
+                showAlert = true
+            } catch {
+                alertMessage = "Error adding to Want to Read: \(error.localizedDescription)"
+                showAlert = true
+            }
+        }
+    }
+
+    private func markAsCurrentlyReading() {
+        Task {
+            do {
+                try await viewModel.markAsCurrentlyReading(book: book)
+                alertMessage = "Marked as Currently Reading"
+                showAlert = true
+            } catch {
+                alertMessage = "Error marking as Currently Reading: \(error.localizedDescription)"
+                showAlert = true
+            }
+        }
+    }
+
+    private func markAsCompleted() {
+        Task {
+            do {
+                try await viewModel.markAsCompleted(book: book)
+                alertMessage = "Marked as Completed"
+                showAlert = true
+            } catch {
+                alertMessage = "Error marking as Completed: \(error.localizedDescription)"
+                showAlert = true
+            }
+        }
+    }
 }
+
+
 struct BookCoverView: View {
     let book: Book
 
@@ -204,7 +289,7 @@ struct BookMetadataView: View {
                         .font(.subheadline)
                         .foregroundColor(.gray)
                     Spacer()
-                    Text("\(book.publishYear)")
+                    Text(String(describing: book.publishYear))
                         .font(.subheadline)
                 }
 
