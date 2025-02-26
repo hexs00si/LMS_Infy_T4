@@ -18,6 +18,10 @@ struct Librarian: Identifiable, Codable {
     var image: String?
     let joinDate: Date
     
+    // Library information - not stored in Firestore, but populated after fetch
+    var libraryName: String?
+    var libraryLocation: String?
+    
     enum CodingKeys: String, CodingKey {
         case id
         case uid
@@ -28,6 +32,8 @@ struct Librarian: Identifiable, Codable {
         case phoneNumber
         case image
         case joinDate
+        // libraryName and libraryLocation are not included in CodingKeys
+        // as they are not stored in Firestore
     }
 }
 
@@ -84,24 +90,62 @@ class LibrarianViewModel: ObservableObject {
                     return
                 }
                 
-                // Now, fetch all librarians who belong to these libraries
-                self.db.collection("librarians")
-                    .whereField("libraryID", in: createdLibraries)
-                    .getDocuments { snapshot, error in
-                        // Switch to the main thread again for the final update
-                        DispatchQueue.main.async {
-                            if let error = error {
-                                self.error = error.localizedDescription
+                // First, fetch all libraries to create a lookup dictionary
+                self.db.collection("libraries")
+                    .whereField(FieldPath.documentID(), in: createdLibraries)
+                    .getDocuments { [weak self] librarySnapshot, libraryError in
+                        guard let self = self else { return }
+                        
+                        if let libraryError = libraryError {
+                            DispatchQueue.main.async {
+                                self.error = libraryError.localizedDescription
                                 self.isLoading = false
-                                return
                             }
-                            
-                            self.librarians = snapshot?.documents.compactMap { document in
-                                try? document.data(as: Librarian.self)
-                            } ?? []
-                            
-                            self.isLoading = false
+                            return
                         }
+                        
+                        // Create a dictionary to map library IDs to library names and locations
+                        var libraryLookup: [String: (name: String, location: String)] = [:]
+                        
+                        for document in librarySnapshot?.documents ?? [] {
+                            let data = document.data()
+                            let libraryID = document.documentID
+                            let name = data["name"] as? String ?? "Unknown Library"
+                            let location = data["location"] as? String ?? "Unknown Location"
+                            
+                            libraryLookup[libraryID] = (name: name, location: location)
+                        }
+                        
+                        // Now, fetch all librarians who belong to these libraries
+                        self.db.collection("librarians")
+                            .whereField("libraryID", in: createdLibraries)
+                            .getDocuments { snapshot, error in
+                                // Switch to the main thread again for the final update
+                                DispatchQueue.main.async {
+                                    if let error = error {
+                                        self.error = error.localizedDescription
+                                        self.isLoading = false
+                                        return
+                                    }
+                                    
+                                    // Parse librarians and add library information
+                                    var librarians = snapshot?.documents.compactMap { document in
+                                        try? document.data(as: Librarian.self)
+                                    } ?? []
+                                    
+                                    // Enhance librarians with library information
+                                    for i in 0..<librarians.count {
+                                        let libraryID = librarians[i].libraryID
+                                        if let libraryInfo = libraryLookup[libraryID] {
+                                            librarians[i].libraryName = libraryInfo.name
+                                            librarians[i].libraryLocation = libraryInfo.location
+                                        }
+                                    }
+                                    
+                                    self.librarians = librarians
+                                    self.isLoading = false
+                                }
+                            }
                     }
             }
         }

@@ -107,6 +107,17 @@ struct LibrarianRowView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text(librarian.name)
                 .font(.system(size: 18, weight: .semibold))
+            
+            // Library information
+            HStack {
+                Image(systemName: "building.2")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                Text(librarian.libraryName ?? "Unknown Library")
+                    .font(.system(size: 15))
+                    .foregroundColor(.gray)
+            }
+            
             HStack {
                 Image(systemName: "envelope")
                     .font(.system(size: 14))
@@ -115,6 +126,7 @@ struct LibrarianRowView: View {
                     .font(.system(size: 15))
                     .foregroundColor(.gray)
             }
+            
             HStack {
                 Image(systemName: "phone")
                     .font(.system(size: 14))
