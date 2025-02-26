@@ -38,8 +38,10 @@ struct LibrarianDashboardView: View {
                         ProfileView()
                     }
                 }
-                .navigationTitle("Dashboard")
             }
+            .navigationTitle("Dashboard")
+            .navigationBarTitleDisplayMode(.large)
+            
             .tabItem {
                 Label("Dashboard", systemImage: "square.grid.2x2")
             }

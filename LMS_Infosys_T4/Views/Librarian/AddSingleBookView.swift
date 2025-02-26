@@ -230,6 +230,7 @@ struct AddSingleBookView: View {
             coverImage: imageBase64,  // Now passing the base64 string
             description: description,
             quantity: quantity,
+            bookIssueCount: 0,
             availableCopies: quantity
         )
         

@@ -88,9 +88,6 @@ struct LoginView: View {
             Spacer()
         }
         .padding()
-        .navigationBarItems(leading: Button("Back") {
-            dismiss()
-        })
         .fullScreenCover(isPresented: $authViewModel.showUpdatePassword) {
             UpdatePasswordView(viewModel: authViewModel)
         }

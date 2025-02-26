@@ -17,6 +17,7 @@ struct Book: Identifiable, Codable {
     let description: String
 //    let edition: String?
     let quantity: Int
+    var bookIssueCount = 0
     let availableCopies: Int
     
     // Add this function to decode base64 to UIImage
@@ -27,13 +28,6 @@ struct Book: Identifiable, Codable {
         }
         return UIImage(data: imageData)
     }
-    
-//    func getCoverImage(byData base64String: String) -> UIImage? {
-//        guard let imageData = Data(base64Encoded: base64String) else {
-//            return nil
-//        }
-//        return UIImage(data: imageData)
-//    }
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -69,7 +63,6 @@ enum AvailabilityStatus: Int, Codable {
         }
     }
 }
-
 
 // Add this BookRequest model
 struct BookRequest: Identifiable, Codable {
@@ -134,8 +127,12 @@ class LibraryViewModel: ObservableObject {
     private let db = Firestore.firestore()
     
     func addBook(_ book: Book) async throws {
-        isLoading = true
-        error = nil
+//        isLoading = true
+//        error = nil
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
         
         do {
             // Create a new document reference to get the auto-generated ID
@@ -147,6 +144,9 @@ class LibraryViewModel: ObservableObject {
             
             // Convert book to dictionary
             let bookData = try Firestore.Encoder().encode(newBook)
+            
+            // Reference the library document
+            let libraryRef = db.collection("libraries").document(book.libraryID)
             
             // Create a batch
             let batch = db.batch()
@@ -168,6 +168,11 @@ class LibraryViewModel: ObservableObject {
                 batch.setData(copyData, forDocument: copyRef)
             }
             
+            // Increment totalBooks in the libraries collection by the book's quantity
+            batch.updateData([
+                "totalBooks": FieldValue.increment(Int64(book.quantity))
+            ], forDocument: libraryRef)
+            
             // Commit the batch
             try await batch.commit()
             
@@ -184,8 +189,12 @@ class LibraryViewModel: ObservableObject {
     }
     
     func fetchPendingBookRequests() async throws {
-        isLoading = true
-        error = nil
+//        isLoading = true
+//        error = nil
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
         
         do {
             // Get the current logged-in user
@@ -231,8 +240,12 @@ class LibraryViewModel: ObservableObject {
     }
     
     func fetchUserBookRequests() async throws {
-        isLoading = true
-        error = nil
+//        isLoading = true
+//        error = nil
+        await MainActor.run {
+            isLoading = true
+            error = nil
+        }
         
         do {
             // Get the current logged-in user
@@ -351,9 +364,7 @@ class LibraryViewModel: ObservableObject {
     }
     
     func approveBookRequest(_ request: BookRequest) async throws {
-        // Get a new document reference for the book issue
         let db = Firestore.firestore()
-        let newIssueRef = db.collection("bookIssues").document()
         
         // Get the librarian ID (current user)
         guard let currentUser = Auth.auth().currentUser else {
@@ -366,32 +377,36 @@ class LibraryViewModel: ObservableObject {
             throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
         }
         
+        // Create a new document reference for the book issue
+        let newIssueRef = db.collection("bookIssues").document()
+        
         // Create book issue data
         let bookIssueData: [String: Any] = [
-            "issueID": newIssueRef.documentID,      // Unique ID for issued book
-            "requestID": request.requestId,          // Link to original request
-            "userId": request.userId,                // ID of the user who borrowed the book
-            "bookId": request.bookId,                // Specific book copy issued
-            "libraryId": request.libraryuId,         // The library issuing the book
-            "issuedByLibrarianId": currentUser.uid,  // ID of approving librarian
-            "issueDate": Timestamp(date: issueDate), // Date book was issued
-            "dueDate": Timestamp(date: dueDate),     // Date the book must be returned
-            "returnDate": NSNull(),                  // Will be updated when returned
-            "isReturned": false,                     // Marks if the book has been returned
-            "fineAmount": 0,                         // Default fine, updated if late
-            "status": "issued"                       // Could be: "issued", "returned", "overdue"
+            "issueID": newIssueRef.documentID,
+            "requestID": request.requestId,
+            "userId": request.userId,
+            "bookId": request.bookId,
+            "libraryId": request.libraryuId,
+            "issuedByLibrarianId": currentUser.uid,
+            "issueDate": Timestamp(date: issueDate),
+            "dueDate": Timestamp(date: dueDate),
+            "returnDate": NSNull(),
+            "isReturned": false,
+            "fineAmount": 10,
+            "status": "issued"
         ]
         
         // Update request status
         let requestRef = db.collection("bookRequests").document(request.id ?? request.requestId)
         
-        // Get book reference to update copy status
+        // Extract main book ID from the request.bookId (barcode format: "bookID-copyNumber")
         let bookIDComponents = request.bookId.split(separator: "-")
         guard bookIDComponents.count >= 2,
               let mainBookID = bookIDComponents.first else {
             throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
         }
         
+        // Reference the book document and its copy
         let bookRef = db.collection("books").document(String(mainBookID))
         let bookCopyRef = bookRef.collection("bookCopies").document(request.bookId)
         
@@ -411,6 +426,11 @@ class LibraryViewModel: ObservableObject {
         batch.updateData([
             "status": "checked out"
         ], forDocument: bookCopyRef)
+        
+        // Increment bookIssueCount in the books collection
+        batch.updateData([
+            "bookIssueCount": FieldValue.increment(Int64(1))
+        ], forDocument: bookRef)
         
         // Commit all changes
         try await batch.commit()
@@ -472,218 +492,218 @@ class LibraryViewModel: ObservableObject {
             throw error
         }
     }
-        // Function to create a reservation
-        func createReservation(book: Book, copyID: String) async throws {
-            let db = Firestore.firestore()
-            
-            // Get the current user ID
-            guard let userId = Auth.auth().currentUser?.uid else {
+    // Function to create a reservation
+    func createReservation(book: Book, copyID: String) async throws {
+        let db = Firestore.firestore()
+        
+        // Get the current user ID
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        // Create a new reservation document
+        let reservationRef = db.collection("bookReservations").document()
+        let reservationDate = Date()
+        
+        // Calculate expiration date (e.g., 2 days from now)
+        guard let expirationDate = Calendar.current.date(byAdding: .day, value: 2, to: reservationDate) else {
+            throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate expiration date"])
+        }
+        
+        // Create reservation data
+        let reservationData: [String: Any] = [
+            "reservationId": reservationRef.documentID,
+            "userId": userId,
+            "bookId": copyID,
+            "libraryId": book.libraryID,
+            "reservationDate": Timestamp(date: reservationDate),
+            "expirationDate": Timestamp(date: expirationDate),
+            "status": "active"
+        ]
+        
+        // Update book copy status to "reserved"
+        let bookRef = db.collection("books").document(book.id!)
+        let bookCopyRef = bookRef.collection("bookCopies").document(copyID)
+        
+        // Create a batch to handle both updates
+        let batch = db.batch()
+        
+        // Add reservation record
+        batch.setData(reservationData, forDocument: reservationRef)
+        
+        // Update book copy status to "reserved"
+        batch.updateData(["status": "reserved"], forDocument: bookCopyRef)
+        
+        // Commit the batch
+        try await batch.commit()
+    }
+    
+    // Function to fulfill a reservation (issue the book)
+    func fulfillReservation(_ reservation: BookReservation) async throws {
+        let db = Firestore.firestore()
+        
+        // Get the current librarian ID
+        guard let librarianId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        // Create a new book issue document
+        let issueRef = db.collection("bookIssues").document()
+        let issueDate = Date()
+        
+        // Calculate due date (e.g., 1 month from now)
+        guard let dueDate = Calendar.current.date(byAdding: .month, value: 1, to: issueDate) else {
+            throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
+        }
+        
+        // Create book issue data
+        let issueData: [String: Any] = [
+            "issueID": issueRef.documentID,
+            "userId": reservation.userId,
+            "bookId": reservation.bookId,
+            "libraryId": reservation.libraryId,
+            "issuedByLibrarianId": librarianId,
+            "issueDate": Timestamp(date: issueDate),
+            "dueDate": Timestamp(date: dueDate),
+            "isReturned": false,
+            "status": "issued"
+        ]
+        
+        // Update reservation status to "fulfilled"
+        let reservationRef = db.collection("bookReservations").document(reservation.id ?? reservation.reservationId)
+        
+        // Update book copy status to "checked out"
+        let bookIDComponents = reservation.bookId.split(separator: "-")
+        guard bookIDComponents.count >= 2,
+              let mainBookID = bookIDComponents.first else {
+            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+        }
+        
+        let bookRef = db.collection("books").document(String(mainBookID))
+        let bookCopyRef = bookRef.collection("bookCopies").document(reservation.bookId)
+        
+        // Create a batch to handle all updates
+        let batch = db.batch()
+        
+        // Add book issue record
+        batch.setData(issueData, forDocument: issueRef)
+        
+        // Update reservation status
+        batch.updateData(["status": "fulfilled"], forDocument: reservationRef)
+        
+        // Update book copy status
+        batch.updateData(["status": "checked out"], forDocument: bookCopyRef)
+        
+        // Commit the batch
+        try await batch.commit()
+    }
+    
+    // Function to cancel a reservation
+    func cancelReservation(_ reservation: BookReservation) async throws {
+        let db = Firestore.firestore()
+        
+        // Update reservation status to "cancelled"
+        let reservationRef = db.collection("bookReservations").document(reservation.id ?? reservation.reservationId)
+        
+        // Update book copy status back to "available"
+        let bookIDComponents = reservation.bookId.split(separator: "-")
+        guard bookIDComponents.count >= 2,
+              let mainBookID = bookIDComponents.first else {
+            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+        }
+        
+        let bookRef = db.collection("books").document(String(mainBookID))
+        let bookCopyRef = bookRef.collection("bookCopies").document(reservation.bookId)
+        
+        // Create a batch to handle all updates
+        let batch = db.batch()
+        
+        // Update reservation status
+        batch.updateData(["status": "cancelled"], forDocument: reservationRef)
+        
+        // Update book copy status
+        batch.updateData(["status": "available"], forDocument: bookCopyRef)
+        
+        // Commit the batch
+        try await batch.commit()
+    }
+    
+    // Function to fetch active reservations
+    func fetchActiveReservations() async throws {
+        isLoading = true
+        error = nil
+        
+        do {
+            // Get the current logged-in user
+            guard let currentUser = Auth.auth().currentUser else {
                 throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
             }
             
-            // Create a new reservation document
-            let reservationRef = db.collection("bookReservations").document()
-            let reservationDate = Date()
+            // Get the librarian's assigned library
+            let librarianDoc = try await db.collection("librarians").document(currentUser.uid).getDocument()
             
-            // Calculate expiration date (e.g., 2 days from now)
-            guard let expirationDate = Calendar.current.date(byAdding: .day, value: 2, to: reservationDate) else {
-                throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate expiration date"])
+            guard let librarianData = librarianDoc.data(),
+                  let assignedLibraryID = librarianData["libraryID"] as? String else {
+                throw NSError(domain: "LibraryError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not a librarian or not assigned to any library"])
             }
             
-            // Create reservation data
-            let reservationData: [String: Any] = [
-                "reservationId": reservationRef.documentID,
-                "userId": userId,
-                "bookId": copyID,
-                "libraryId": book.libraryID,
-                "reservationDate": Timestamp(date: reservationDate),
-                "expirationDate": Timestamp(date: expirationDate),
-                "status": "active"
-            ]
+            // Get active reservations for this library
+            let reservationsSnapshot = try await db.collection("bookReservations")
+                .whereField("libraryId", isEqualTo: assignedLibraryID)
+                .whereField("status", isEqualTo: "active")
+                .getDocuments()
             
-            // Update book copy status to "reserved"
-            let bookRef = db.collection("books").document(book.id!)
-            let bookCopyRef = bookRef.collection("bookCopies").document(copyID)
-            
-            // Create a batch to handle both updates
-            let batch = db.batch()
-            
-            // Add reservation record
-            batch.setData(reservationData, forDocument: reservationRef)
-            
-            // Update book copy status to "reserved"
-            batch.updateData(["status": "reserved"], forDocument: bookCopyRef)
-            
-            // Commit the batch
-            try await batch.commit()
-        }
-        
-        // Function to fulfill a reservation (issue the book)
-        func fulfillReservation(_ reservation: BookReservation) async throws {
-            let db = Firestore.firestore()
-            
-            // Get the current librarian ID
-            guard let librarianId = Auth.auth().currentUser?.uid else {
-                throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-            }
-            
-            // Create a new book issue document
-            let issueRef = db.collection("bookIssues").document()
-            let issueDate = Date()
-            
-            // Calculate due date (e.g., 1 month from now)
-            guard let dueDate = Calendar.current.date(byAdding: .month, value: 1, to: issueDate) else {
-                throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
-            }
-            
-            // Create book issue data
-            let issueData: [String: Any] = [
-                "issueID": issueRef.documentID,
-                "userId": reservation.userId,
-                "bookId": reservation.bookId,
-                "libraryId": reservation.libraryId,
-                "issuedByLibrarianId": librarianId,
-                "issueDate": Timestamp(date: issueDate),
-                "dueDate": Timestamp(date: dueDate),
-                "isReturned": false,
-                "status": "issued"
-            ]
-            
-            // Update reservation status to "fulfilled"
-            let reservationRef = db.collection("bookReservations").document(reservation.id ?? reservation.reservationId)
-            
-            // Update book copy status to "checked out"
-            let bookIDComponents = reservation.bookId.split(separator: "-")
-            guard bookIDComponents.count >= 2,
-                  let mainBookID = bookIDComponents.first else {
-                throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
-            }
-            
-            let bookRef = db.collection("books").document(String(mainBookID))
-            let bookCopyRef = bookRef.collection("bookCopies").document(reservation.bookId)
-            
-            // Create a batch to handle all updates
-            let batch = db.batch()
-            
-            // Add book issue record
-            batch.setData(issueData, forDocument: issueRef)
-            
-            // Update reservation status
-            batch.updateData(["status": "fulfilled"], forDocument: reservationRef)
-            
-            // Update book copy status
-            batch.updateData(["status": "checked out"], forDocument: bookCopyRef)
-            
-            // Commit the batch
-            try await batch.commit()
-        }
-        
-        // Function to cancel a reservation
-        func cancelReservation(_ reservation: BookReservation) async throws {
-            let db = Firestore.firestore()
-            
-            // Update reservation status to "cancelled"
-            let reservationRef = db.collection("bookReservations").document(reservation.id ?? reservation.reservationId)
-            
-            // Update book copy status back to "available"
-            let bookIDComponents = reservation.bookId.split(separator: "-")
-            guard bookIDComponents.count >= 2,
-                  let mainBookID = bookIDComponents.first else {
-                throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
-            }
-            
-            let bookRef = db.collection("books").document(String(mainBookID))
-            let bookCopyRef = bookRef.collection("bookCopies").document(reservation.bookId)
-            
-            // Create a batch to handle all updates
-            let batch = db.batch()
-            
-            // Update reservation status
-            batch.updateData(["status": "cancelled"], forDocument: reservationRef)
-            
-            // Update book copy status
-            batch.updateData(["status": "available"], forDocument: bookCopyRef)
-            
-            // Commit the batch
-            try await batch.commit()
-        }
-        
-        // Function to fetch active reservations
-        func fetchActiveReservations() async throws {
-            isLoading = true
-            error = nil
-            
-            do {
-                // Get the current logged-in user
-                guard let currentUser = Auth.auth().currentUser else {
-                    throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-                }
-                
-                // Get the librarian's assigned library
-                let librarianDoc = try await db.collection("librarians").document(currentUser.uid).getDocument()
-                
-                guard let librarianData = librarianDoc.data(),
-                      let assignedLibraryID = librarianData["libraryID"] as? String else {
-                    throw NSError(domain: "LibraryError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not a librarian or not assigned to any library"])
-                }
-                
-                // Get active reservations for this library
-                let reservationsSnapshot = try await db.collection("bookReservations")
-                    .whereField("libraryId", isEqualTo: assignedLibraryID)
-                    .whereField("status", isEqualTo: "active")
-                    .getDocuments()
-                
-                // Process the reservations
-                let activeReservations = reservationsSnapshot.documents.compactMap { document -> BookReservation? in
-                    do {
-                        return try document.data(as: BookReservation.self)
-                    } catch {
-                        print("Error decoding book reservation: \(error)")
-                        return nil
-                    }
-                }
-                
-                await MainActor.run {
-                    self.activeReservations = activeReservations
-                    self.isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.error = error.localizedDescription
-                    self.isLoading = false
-                }
-                throw error
-            }
-        }
-        
-        func getFirstAvailableCopyID(for book: Book) async throws -> String? {
-            let db = Firestore.firestore()
-            
-            // Reference the book's copies subcollection
-            let bookRef = db.collection("books").document(book.id!)
-            let copiesRef = bookRef.collection("bookCopies")
-            
-            // Query for the first available copy
-            let query = copiesRef
-                .whereField("status", isEqualTo: "available")
-                .limit(to: 1) // Limit to 1 result since we only need the first available copy
-            
-            do {
-                let snapshot = try await query.getDocuments()
-                
-                // Check if there's an available copy
-                if let document = snapshot.documents.first {
-                    // Return the barcode (document ID) of the available copy
-                    return document.documentID
-                } else {
-                    // No available copies found
+            // Process the reservations
+            let activeReservations = reservationsSnapshot.documents.compactMap { document -> BookReservation? in
+                do {
+                    return try document.data(as: BookReservation.self)
+                } catch {
+                    print("Error decoding book reservation: \(error)")
                     return nil
                 }
-            } catch {
-                print("Error fetching available copies: \(error.localizedDescription)")
-                throw error
             }
+            
+            await MainActor.run {
+                self.activeReservations = activeReservations
+                self.isLoading = false
+            }
+        } catch {
+            await MainActor.run {
+                self.error = error.localizedDescription
+                self.isLoading = false
+            }
+            throw error
         }
     }
     
+    func getFirstAvailableCopyID(for book: Book) async throws -> String? {
+        let db = Firestore.firestore()
+        
+        // Reference the book's copies subcollection
+        let bookRef = db.collection("books").document(book.id!)
+        let copiesRef = bookRef.collection("bookCopies")
+        
+        // Query for the first available copy
+        let query = copiesRef
+            .whereField("status", isEqualTo: "available")
+            .limit(to: 1) // Limit to 1 result since we only need the first available copy
+        
+        do {
+            let snapshot = try await query.getDocuments()
+            
+            // Check if there's an available copy
+            if let document = snapshot.documents.first {
+                // Return the barcode (document ID) of the available copy
+                return document.documentID
+            } else {
+                // No available copies found
+                return nil
+            }
+        } catch {
+            print("Error fetching available copies: \(error.localizedDescription)")
+            throw error
+        }
+    }
+}
+
 

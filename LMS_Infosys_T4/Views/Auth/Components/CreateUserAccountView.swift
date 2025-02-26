@@ -136,6 +136,7 @@ struct CreateUserAccountView: View {
             .padding(.top, 8)
             .fullScreenCover(isPresented: $showVerificationScreen) {
                 VerificationView(
+                    isPresented: $isPresented,
                     email: email,
                     user: User(
                         id: nil,

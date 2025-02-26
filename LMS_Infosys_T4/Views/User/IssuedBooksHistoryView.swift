@@ -112,6 +112,16 @@ struct IssuedBooksHistoryView: View {
                 }
                 .navigationTitle("Issue Books")
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Text("Books: \(issuedBooks.count)")
+                            .font(.subheadline)
+                            .bold()
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.2))
+                            .foregroundColor(.blue)
+                            .clipShape(Capsule())
+                    }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: {

@@ -24,7 +24,7 @@ struct ContentView: View {
                             LibrarianDashboardView()
                                 .transition(.opacity)
                         case .member:
-                            MainTabView() // Assuming this is the member's dashboard
+                            MainTabView()
                                 .transition(.opacity)
                         }
                     }
@@ -32,24 +32,33 @@ struct ContentView: View {
                     if selectedRole == nil {
                         InitialSelectionView(selectedRole: $selectedRole)
                             .transition(.opacity)
+                            .navigationBarBackButtonHidden(true)
                     } else {
                         LoginView(isUser: Binding(
                             get: { selectedRole ?? true },
                             set: { selectedRole = $0 }
                         ))
                         .transition(.opacity)
+                        .navigationTitle("")
+                        .toolbar {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button("Back") {
+                                    selectedRole = nil
+                                }
+                            }
+                        }
                     }
                 }
             }
             .animation(.default, value: authViewModel.isAuthenticated)
-            .onChange(of: authViewModel.isAuthenticated) { newValue in
+            .onChange(of: authViewModel.isAuthenticated, { oldValue, newValue in
                 print("🔍 ContentView - isAuthenticated changed to: \(newValue)")
                 if !newValue {
                     navigationPath = NavigationPath()
                     selectedRole = nil // Reset to InitialSelectionView after sign-out
                     print("🧹 Navigation path and role reset")
                 }
-            }
+            })
             .onAppear {
                 print("🔍 ContentView appeared - isAuthenticated: \(authViewModel.isAuthenticated)")
             }

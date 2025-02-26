@@ -46,7 +46,7 @@ struct InitialSelectionView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 40)
-        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

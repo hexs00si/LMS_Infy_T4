@@ -1,10 +1,13 @@
 import SwiftUI
 
-
 struct VerificationView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var isPresented: Bool
+    
     var email: String
     let user: User
     var organizationID: String
+    
     @State private var otp: String = ""
     @State private var showError = false
     @FocusState private var isFocused: Bool
@@ -82,6 +85,16 @@ struct VerificationView: View {
                         .foregroundColor(.blue)
                         .fontWeight(.bold)
                 }
+                // Add a back button
+                Button(action: {
+                    isPresented = false  // This will trigger the dismissal
+                }) {
+                    Text("Cancel")
+                        .foregroundColor(.blue)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .padding(.top, 8)
                 
                 Spacer()
                 NavigationLink(destination: CreatePasswordView(user: user, organizationID: organizationID), isActive: $navigateToPasswordSetup) {
@@ -97,5 +110,5 @@ struct VerificationView: View {
 
 
 #Preview {
-    VerificationView(email: "", user: User(id: "", name: "", email: "", password: "", gender: "", phoneNumber: "", joinDate: Date(), issuedBooks: [], currentlyIssuedCount: 0), organizationID: "")
+    VerificationView(isPresented: Binding.constant(true), email: "", user: User(id: "", name: "", email: "", password: "", gender: "", phoneNumber: "", joinDate: Date(), issuedBooks: [], currentlyIssuedCount: 0), organizationID: "")
 }
