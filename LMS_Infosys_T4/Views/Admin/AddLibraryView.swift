@@ -92,7 +92,7 @@ struct AddLibraryView: View {
                 trailing: Button("Save") {
                     saveLibrary()
                 }
-                .disabled(!canSave)
+                    .disabled(!canSave)
             )
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) {}

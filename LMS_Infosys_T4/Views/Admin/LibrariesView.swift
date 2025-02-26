@@ -9,7 +9,7 @@ struct LibrariesView: View {
     
     var filteredLibraries: [Library] {
         var result = viewModel.libraries
-                
+        
         // Apply active status filter
         switch activeFilter {
         case .all:
@@ -74,17 +74,17 @@ struct LibrariesView: View {
                     .padding(.horizontal)
             }
             
-//            HStack {
-//                SearchBar(text: $searchText, placeholder: "Search by name or location...")
-//                Picker("Filter", selection: $activeFilter) {
-//                    Text("All").tag(LibraryFilter.all)
-//                    Text("Active").tag(LibraryFilter.active)
-//                    Text("Inactive").tag(LibraryFilter.inactive)
-//                }
-//                .pickerStyle(SegmentedPickerStyle())
-//                .padding(.horizontal)
-//                .padding(.top, 8)
-//            }
+            //            HStack {
+            //                SearchBar(text: $searchText, placeholder: "Search by name or location...")
+            //                Picker("Filter", selection: $activeFilter) {
+            //                    Text("All").tag(LibraryFilter.all)
+            //                    Text("Active").tag(LibraryFilter.active)
+            //                    Text("Inactive").tag(LibraryFilter.inactive)
+            //                }
+            //                .pickerStyle(SegmentedPickerStyle())
+            //                .padding(.horizontal)
+            //                .padding(.top, 8)
+            //            }
             HStack {
                 SearchBar(text: $searchText, placeholder: "Search by name or location...")
                 FilterButton(activeFilter: $activeFilter)

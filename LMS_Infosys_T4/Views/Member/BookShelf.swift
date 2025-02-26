@@ -13,14 +13,14 @@ struct BookShelf: View {
     @State private var isLoading = false
     @State private var showAlert = false
     @State private var alertMessage = ""
-
+    
     let sections: [(title: String, filter: (Book) -> Bool)] = [
         ("Want to Read", { _ in true }),
         ("Currently Reading", { $0.availabilityStatus == .checkedOut }),
         ("Completed", { $0.bookIssueCount > 0 }),
         ("Reserved", { $0.availabilityStatus == .reserved })
     ]
-
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -39,12 +39,12 @@ struct BookShelf: View {
                         // Fetch all books for the reserved section
                         let allBooks = try await viewModel.fetchAllBooks()
                         viewModel.books = allBooks
-
+                        
                         // Fetch books for the other sections
                         let wishlistBooks = try await viewModel.fetchWishlistBooks()
                         let currentlyReadingBooks = try await viewModel.fetchCurrentlyReadingBooks()
                         let alreadyReadBooks = try await viewModel.fetchAlreadyReadBooks()
-
+                        
                         // Combine all books into one array
                         viewModel.books = allBooks + wishlistBooks + currentlyReadingBooks + alreadyReadBooks
                     } catch {
@@ -64,13 +64,13 @@ struct BookShelf: View {
 struct SectionView: View {
     let title: String
     let books: [Book]
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.title2.bold())
                 .padding(.leading)
-
+            
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     if books.isEmpty {
@@ -91,7 +91,7 @@ struct SectionView: View {
 
 struct BookCardView: View {
     let book: Book
-
+    
     var body: some View {
         VStack(alignment: .leading) {
             if let image = book.getCoverImage() {

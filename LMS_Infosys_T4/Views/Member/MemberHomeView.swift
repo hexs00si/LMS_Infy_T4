@@ -12,7 +12,7 @@ struct MemberHomeView: View {
     @State private var searchText = ""
     @State private var showingGenreFilter = false
     @StateObject private var viewModel = LibraryViewModel() // Persistent ViewModel
-
+    
     let categories = ["All Books", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
     
     var filteredBooks: [Book] {
@@ -26,7 +26,7 @@ struct MemberHomeView: View {
         
         return categoryFilteredBooks
     }
-
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -46,13 +46,13 @@ struct MemberHomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
                 trailing: HStack {
-//                    Button(action: {
-//                        print("Bell icon tapped")
-//                    }) {
-//                        Image(systemName: "bell.fill")
-//                            .font(.title2)
-//                            .foregroundColor(.black)
-//                    }
+                    //                    Button(action: {
+                    //                        print("Bell icon tapped")
+                    //                    }) {
+                    //                        Image(systemName: "bell.fill")
+                    //                            .font(.title2)
+                    //                            .foregroundColor(.black)
+                    //                    }
                     
                     Button(action: {
                         showingGenreFilter.toggle()
@@ -70,8 +70,8 @@ struct MemberHomeView: View {
                 viewModel.fetchBooks() // Fetch books when the view appears
             }
             .refreshable {
-               await refreshData()
-           }
+                await refreshData()
+            }
             
         }
     }
@@ -177,17 +177,17 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
-
+            
             BookShelf()
                 .tabItem {
                     Label("Bookshelf", systemImage: "books.vertical.fill")
                 }
-
+            
             IssuedBooksHistoryView()
                 .tabItem {
                     Label("Issue Books", systemImage: "book.closed")
                 }
-
+            
             UserProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")

@@ -31,7 +31,6 @@ struct StatisticCard: View {
             }
         }
         .padding()
-//        .background(Color.white)
         .background(Color(.systemBackground))
         .cornerRadius(10)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
@@ -74,14 +73,14 @@ struct BookListItemView: View {
                     .lineLimit(1)
                 
                 HStack {
-//                    Text(book.genre)
-//                        .font(.caption)
-//                        .padding(.horizontal, 8)
-//                        .padding(.vertical, 3)
-//                        .background(Color.blue.opacity(0.1))
-//                        .cornerRadius(4)
-//                    
-//                    Spacer()
+                    //                    Text(book.genre)
+                    //                        .font(.caption)
+                    //                        .padding(.horizontal, 8)
+                    //                        .padding(.vertical, 3)
+                    //                        .background(Color.blue.opacity(0.1))
+                    //                        .cornerRadius(4)
+                    //
+                    //                    Spacer()
                     
                     // Availability badge
                     Text(book.availabilityStatus.description)
@@ -95,7 +94,6 @@ struct BookListItemView: View {
             }
         }
         .padding()
-//        .background(Color.white)
         .background(Color(.systemBackground))
         .cornerRadius(8)
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
@@ -111,8 +109,6 @@ struct BookListItemView: View {
             return .orange
         case .reserved:
             return .blue
-//        case .underMaintenance:
-//            return .red
         }
     }
 }
@@ -140,8 +136,6 @@ struct LibrarianDashboardView: View {
                                 color: .blue
                             )
                         }
-//                        .padding()
-//                        .background(Color(.systemGray6))
                         .cornerRadius(12)
                         
                         Text("Recently Added Books")
@@ -149,9 +143,9 @@ struct LibrarianDashboardView: View {
                             .foregroundColor(.secondary)
                         
                         VStack(alignment: .leading, spacing: 16) {
-//                            Text("Recently Added Books")
-//                                .font(.headline)
-//                                .foregroundColor(.secondary)
+                            //                            Text("Recently Added Books")
+                            //                                .font(.headline)
+                            //                                .foregroundColor(.secondary)
                             
                             SearchBar(text: $searchText, placeholder: "Search books...")
                             
@@ -170,14 +164,12 @@ struct LibrarianDashboardView: View {
                             }
                         }
                         .padding()
-//                        .background(Color.white)
                         .background(Color(.systemBackground))
                         .cornerRadius(12)
                     }
                     .padding()
                 }
                 .background(Color(.systemGray6))
-//                .background(Color.white)
                 .navigationTitle("Librarian Dashboard")
                 .onAppear {
                     viewModel.fetchBooks()
@@ -205,7 +197,6 @@ struct LibrarianDashboardView: View {
             }
             
             NavigationView {
-//                ReturnView()
                 ReturnBookView(viewModel: viewModel)
             }
             .tabItem {

@@ -4,7 +4,7 @@ struct ReportsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Binding var isPresented: Bool
     @State private var showingSignOutAlert = false
-
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -15,13 +15,13 @@ struct ReportsView: View {
             }
             .navigationTitle("Reports")
             .navigationBarItems(trailing:
-                Button(action: {
-                    showingSignOutAlert = true
-                }) {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .font(.system(size: 20))
-                        .foregroundColor(.blue)
-                }
+                                    Button(action: {
+                showingSignOutAlert = true
+            }) {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.system(size: 20))
+                    .foregroundColor(.blue)
+            }
             )
             .alert("Sign Out", isPresented: $showingSignOutAlert) {
                 Button("Cancel", role: .cancel) { }

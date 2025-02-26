@@ -17,14 +17,14 @@ class OTPCommands: ObservableObject {
     
     func sendOTP(email: String, name: String, completion: @escaping (Bool, String?) -> Void) {
         guard let url = URL(string: "http://localhost:3000/send-otp") else { return }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let body: [String: String] = ["email": email]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
+        
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 completion(false, error.localizedDescription)
@@ -34,7 +34,7 @@ class OTPCommands: ObservableObject {
                 completion(false, "Failed to send OTP")
                 return
             }
-
+            
             self?.emailForSignup = email
             self?.nameForSignup = name
             completion(true, nil)
@@ -43,14 +43,14 @@ class OTPCommands: ObservableObject {
     
     func verifyOTP(otp: String, completion: @escaping (Bool, String?) -> Void) {
         guard let url = URL(string: "http://localhost:3000/verify-otp") else { return }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let body: [String: String] = ["email": emailForSignup, "otp": otp]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
+        
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             if let error = error {
                 print("Network Error: \(error.localizedDescription)")

@@ -88,7 +88,7 @@ struct AddLibrarianView: View {
                     saveLibrarian()
                     dismiss()
                 }
-                .disabled(!isFormValid)
+                    .disabled(!isFormValid)
             )
             .alert("Error", isPresented: $showError) {
                 Button("OK", role: .cancel) {}
@@ -105,7 +105,7 @@ struct AddLibrarianView: View {
         !name.isEmpty &&
         !email.isEmpty &&
         email.contains("@") &&
-//        !phoneNumber.isEmpty &&
+        //        !phoneNumber.isEmpty &&
         phoneNumber.count == 10 &&
         selectedLibrary != nil
     }

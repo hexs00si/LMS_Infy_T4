@@ -4,7 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigationPath = NavigationPath()
     @State private var selectedRole: Bool? // nil = InitialSelection, true = User, false = Staff
-
+    
     var body: some View {
         NavigationStack(path: $navigationPath) {
             Group {

@@ -3,7 +3,7 @@ import SwiftUI
 struct InitialSelectionView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Binding var selectedRole: Bool?
-
+    
     var body: some View {
         VStack(spacing: 30) {
             Spacer()
@@ -12,14 +12,14 @@ struct InitialSelectionView: View {
                 .scaledToFit()
                 .frame(width: 200, height: 200)
                 .foregroundColor(.black)
-
+            
             Text("Welcome to Library")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.black)
-
+            
             Spacer()
-
+            
             Button(action: {
                 selectedRole = true // User
             }) {
@@ -31,7 +31,7 @@ struct InitialSelectionView: View {
                     .cornerRadius(10)
             }
             .buttonStyle(ScaleButtonStyle())
-
+            
             Button(action: {
                 selectedRole = false // Staff
             }) {

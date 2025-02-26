@@ -5,7 +5,6 @@
 //  Created by Gaganveer Bawa on 26/02/25.
 //
 
-
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
@@ -20,6 +19,7 @@ struct UserProfileView: View {
     @State private var phoneNumber: String = ""
     
     @State private var showingNameUpdateAlert = false
+    @State private var showingSignOutConfirmation = false
     @State private var newName: String = ""
     
     var body: some View {
@@ -84,7 +84,9 @@ struct UserProfileView: View {
                 }
                 
                 Section {
-                    Button(action: signOut) {
+                    Button(action: {
+                        showingSignOutConfirmation = true
+                    }) {
                         Text("Sign Out")
                             .foregroundColor(.red)
                     }
@@ -98,6 +100,12 @@ struct UserProfileView: View {
                 TextField("Enter new name", text: $newName)
                 Button("Update", action: updateName)
                 Button("Cancel", role: .cancel) { }
+            }
+            .alert("Sign Out", isPresented: $showingSignOutConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Sign Out", role: .destructive, action: signOut)
+            } message: {
+                Text("Are you sure you want to sign out?")
             }
         }
     }

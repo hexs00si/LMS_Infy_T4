@@ -94,51 +94,51 @@ class AuthenticationService: ObservableObject {
     
     func completeSignUp(password: String, user: User, organizationID: String, completion: @escaping (Bool, String?) -> Void) {
         auth.createUser(withEmail: user.email, password: password) { [weak self] authResult, error in
-           if let error = error {
-               print("❌ Firebase Auth user creation failed: \(error.localizedDescription)")
-               completion(false, error.localizedDescription)
-               return
-           }
-           
-           guard let userId = authResult?.user.uid else {
-               print("❌ User ID not found after authentication")
-               completion(false, "User authentication failed.")
-               return
-           }
-
-           print("✅ User created in Firebase Auth, now storing in Firestore (authUsers)...")
-
-           // Firestore Reference
-           let db = Firestore.firestore()
-           let authUserRef = db.collection("authUsers").document(userId)
-           let memberRef = db.collection("members").document(userId)
-        
-            let memberData: [String: Any] = [
-                      "name": user.name,
-                      "email": user.email,
-                      "gender": user.gender,
-                      "phoneNumber": user.phoneNumber,
-                      "organizationID": organizationID,
-                      "joinDate": Timestamp(date: Date()),  // Firestore Timestamp
-                      "issuedBooks": [],
-                      "issuedCount": 0
-                  ]
+            if let error = error {
+                print("❌ Firebase Auth user creation failed: \(error.localizedDescription)")
+                completion(false, error.localizedDescription)
+                return
+            }
             
-           let authUserData: [String: Any] = [
-               "email": user.email,
-               "isFirstLogin": false,
-               "userType": "member",
-               "createdAt": Timestamp(date: Date())  // Firestore Timestamp
-           ]
-
-           print("📌 Writing data to Firestore: \(authUserData)")
+            guard let userId = authResult?.user.uid else {
+                print("❌ User ID not found after authentication")
+                completion(false, "User authentication failed.")
+                return
+            }
+            
+            print("✅ User created in Firebase Auth, now storing in Firestore (authUsers)...")
+            
+            // Firestore Reference
+            let db = Firestore.firestore()
+            let authUserRef = db.collection("authUsers").document(userId)
+            let memberRef = db.collection("members").document(userId)
+            
+            let memberData: [String: Any] = [
+                "name": user.name,
+                "email": user.email,
+                "gender": user.gender,
+                "phoneNumber": user.phoneNumber,
+                "organizationID": organizationID,
+                "joinDate": Timestamp(date: Date()),  // Firestore Timestamp
+                "issuedBooks": [],
+                "issuedCount": 0
+            ]
+            
+            let authUserData: [String: Any] = [
+                "email": user.email,
+                "isFirstLogin": false,
+                "userType": "member",
+                "createdAt": Timestamp(date: Date())  // Firestore Timestamp
+            ]
+            
+            print("📌 Writing data to Firestore: \(authUserData)")
             print("📌 Writing data to Firestore: \(memberData) (members)")
-
+            
             // Save both documents using batch
             let batch = db.batch()
             batch.setData(authUserData, forDocument: authUserRef)
             batch.setData(memberData, forDocument: memberRef)
-
+            
             batch.commit { error in
                 if let error = error {
                     print("❌ Firestore batch write failed: \(error.localizedDescription)")
@@ -148,21 +148,21 @@ class AuthenticationService: ObservableObject {
                     completion(true, nil)
                 }
             }
-       }
+        }
     }
-
+    
     private func storeUserInDatabase(userId: String, user: User, organizationID: String, completion: @escaping (Bool, String?) -> Void) {
         print("➡️ Storing user in Firestore (authUsers only) for testing: \(userId)")
-
+        
         let authUserRef = db.collection("authUsers").document(userId)
-
+        
         let authUserData: [String: Any] = [
             "email": user.email,
             "isFirstLogin": true,
             "userType": "member",
             "createdAt": Timestamp(date: Date())  // Firestore Timestamp
         ]
-
+        
         authUserRef.setData(authUserData) { error in
             if let error = error {
                 print("❌ Firestore write failed: \(error.localizedDescription)")

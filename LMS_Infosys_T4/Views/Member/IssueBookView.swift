@@ -88,7 +88,7 @@ struct IssueBookView: View {
                 trailing: Button("Issue") {
                     issueBook()
                 }
-                .disabled(!isFormValid || isLoading)
+                    .disabled(!isFormValid || isLoading)
             )
             .sheet(isPresented: $showingScanner) {
                 CodeScannerView(codeTypes: [.qr], completion: handleScan)
@@ -206,22 +206,6 @@ struct IssueBookView: View {
             alertTitle = "Scan Failed"
             alertMessage = "Unable to read QR code. Please try again or enter the book ID manually."
             showAlert = true
-        }
-    }
-}
-
-// Read-Only Text Field for Displaying Book Details
-struct ReadOnlyTextField: View {
-    let label: String
-    let text: String
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(label + ":")
-                .foregroundColor(.gray)
-            Text(text.isEmpty ? "-" : text)
-                .lineLimit(nil)
-                .multilineTextAlignment(.leading)
         }
     }
 }

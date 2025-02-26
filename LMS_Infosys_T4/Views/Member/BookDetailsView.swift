@@ -7,7 +7,7 @@ struct BookDetailsView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var libraryName: String = "Loading..."
-
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) { // Keeps the button fixed at the bottom
@@ -15,10 +15,10 @@ struct BookDetailsView: View {
                     VStack(alignment: .center, spacing: 16) {
                         // Book Cover
                         BookCoverView(book: book)
-
+                        
                         // Book Metadata
                         BookMetadataView(book: book)
-
+                        
                         // Book Description
                         BookDescriptionView(book: book)
                         
@@ -27,7 +27,7 @@ struct BookDetailsView: View {
                             Text("Manage Your Reading")
                                 .font(.headline)
                                 .padding(.top)
-
+                            
                             Button(action: {
                                 addToWishlist()
                             }) {
@@ -39,7 +39,7 @@ struct BookDetailsView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(12)
                             }
-
+                            
                             Button(action: {
                                 markAsCurrentlyReading()
                             }) {
@@ -51,7 +51,7 @@ struct BookDetailsView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(12)
                             }
-
+                            
                             Button(action: {
                                 markAsCompleted()
                             }) {
@@ -65,13 +65,13 @@ struct BookDetailsView: View {
                             }
                         }
                         .padding(.horizontal)
-
+                        
                         Spacer() // Pushes the button to the bottom
                             .frame(height: 80) // Keeps space for the button
                     }
                     .frame(minHeight: geometry.size.height) // Ensures content fits inside the screen
                 }
-
+                
                 // Reserve Button
                 ReserveButtonView(
                     book: book,
@@ -112,7 +112,7 @@ struct BookDetailsView: View {
             }
         }
     }
-
+    
     private func markAsCurrentlyReading() {
         Task {
             do {
@@ -125,7 +125,7 @@ struct BookDetailsView: View {
             }
         }
     }
-
+    
     private func markAsCompleted() {
         Task {
             do {
@@ -143,7 +143,7 @@ struct BookDetailsView: View {
 
 struct BookCoverView: View {
     let book: Book
-
+    
     var body: some View {
         ZStack(alignment: .topTrailing) {
             if let uiImage = book.getCoverImage() {
@@ -161,7 +161,7 @@ struct BookCoverView: View {
                     .cornerRadius(12)
                     .padding()
             }
-
+            
             // Update status display based on availableCopies
             Text(book.availableCopies > 0 ? "Available" : "Unavailable")
                 .font(.caption)
@@ -180,7 +180,7 @@ struct ReserveButtonView: View {
     @Binding var isLoading: Bool
     @Binding var showAlert: Bool
     @Binding var alertMessage: String
-
+    
     var body: some View {
         VStack {
             Divider() // Adds a separator above the button
@@ -230,13 +230,13 @@ struct ReserveButtonView: View {
 
 struct BookDescriptionView: View {
     let book: Book
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Description")
                 .font(.headline)
                 .padding(.horizontal)
-
+            
             Text(book.description)
                 .font(.body)
                 .foregroundColor(.gray)
@@ -250,19 +250,19 @@ struct BookDescriptionView: View {
 
 struct BookMetadataView: View {
     let book: Book
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(book.title)
                 .font(.title)
                 .fontWeight(.bold)
                 .padding(.horizontal)
-
+            
             Text("by \(book.author)")
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .padding(.horizontal)
-
+            
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
                 ForEach(book.genre.split(separator: ",").map { String($0) }, id: \.self) { category in
                     Text(category.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -273,7 +273,7 @@ struct BookMetadataView: View {
                 }
             }
             .padding(.horizontal)
-
+            
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("ISBN")
@@ -283,7 +283,7 @@ struct BookMetadataView: View {
                     Text(book.isbn)
                         .font(.subheadline)
                 }
-
+                
                 HStack {
                     Text("Published Year")
                         .font(.subheadline)
@@ -292,7 +292,7 @@ struct BookMetadataView: View {
                     Text(String(describing: book.publishYear))
                         .font(.subheadline)
                 }
-
+                
                 HStack {
                     Text("Total Copies")
                         .font(.subheadline)
@@ -301,7 +301,7 @@ struct BookMetadataView: View {
                     Text("\(book.quantity)")
                         .font(.subheadline)
                 }
-
+                
                 HStack {
                     Text("Available Copies")
                         .font(.subheadline)

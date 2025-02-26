@@ -94,7 +94,7 @@ struct ReturnBookView: View {
                 trailing: Button("Confirm Return") {
                     confirmReturn()
                 }
-                .disabled(!isBookFetched || isLoading)
+                    .disabled(!isBookFetched || isLoading)
             )
             .sheet(isPresented: $showingScanner) {
                 CodeScannerView(codeTypes: [.qr], completion: handleScan)
@@ -231,19 +231,3 @@ struct ReturnBookView: View {
         }
     }
 }
-
-// Read-Only Text Field for Displaying Book Details
-//struct ReadOnlyTextField: View {
-//    let label: String
-//    let text: String
-//    
-//    var body: some View {
-//        VStack(alignment: .leading) {
-//            Text(label + ":")
-//                .foregroundColor(.gray)
-//            Text(text.isEmpty ? "-" : text)
-//                .lineLimit(nil)
-//                .multilineTextAlignment(.leading)
-//        }
-//    }
-//}

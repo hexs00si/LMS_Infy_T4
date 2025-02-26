@@ -93,8 +93,8 @@ struct MapSelectionView: View {
                             annotationItems: annotationItems()) { item in
                             MapMarker(coordinate: item.coordinate, tint: .red)
                         }
-                        .mapStyle(mapType == .standard ? .standard :
-                                  mapType == .hybrid ? .hybrid : .imagery)
+                            .mapStyle(mapType == .standard ? .standard :
+                                        mapType == .hybrid ? .hybrid : .imagery)
                         
                         // Centered pin
                         VStack {

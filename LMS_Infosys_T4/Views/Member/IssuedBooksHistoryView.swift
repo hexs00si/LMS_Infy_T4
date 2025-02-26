@@ -53,21 +53,21 @@ struct IssuedBooksHistoryView: View {
             ZStack {
                 List(issuedBooks) { book in
                     HStack {
-                       // Display book cover image from base64 string
-                       if let imageData = Data(base64Encoded: book.coverImage),
-                          let uiImage = UIImage(data: imageData) {
-                           Image(uiImage: uiImage)
-                               .resizable()
-                               .scaledToFit()
-                               .frame(width: 50, height: 70)
-                               .clipShape(RoundedRectangle(cornerRadius: 8))
-                       } else {
-                           // Default image if no cover available
-                           Rectangle()
-                               .fill(Color.gray.opacity(0.3))
-                               .frame(width: 50, height: 70)
-                               .clipShape(RoundedRectangle(cornerRadius: 8))
-                       }
+                        // Display book cover image from base64 string
+                        if let imageData = Data(base64Encoded: book.coverImage),
+                           let uiImage = UIImage(data: imageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 50, height: 70)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            // Default image if no cover available
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(width: 50, height: 70)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(book.title).font(.headline)
@@ -220,7 +220,7 @@ struct IssuedBooksHistoryView: View {
                 
                 // Parse the requestDate from the BookRequest
                 let issueDate = request.requestDate
-
+                
                 // Include in the IssuedBook constructor
                 let book = IssuedBook(
                     id: request.id ?? request.requestId,
@@ -272,7 +272,7 @@ struct IssuedBooksHistoryView: View {
                 // Get issue date from the document
                 let issueDateTimestamp = data["issueDate"] as? Timestamp
                 let issueDate = issueDateTimestamp?.dateValue() ?? Date()
-
+                
                 // Include in the IssuedBook constructor
                 let book = IssuedBook(
                     id: document.documentID,

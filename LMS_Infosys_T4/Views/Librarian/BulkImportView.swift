@@ -4,96 +4,6 @@
 //
 //  Created by Kinshuk Garg on 14/02/25.
 //
-//import SwiftUI
-//
-//struct BulkImportView: View {
-//    @ObservedObject var viewModel: LibraryViewModel
-//    @State private var showingFilePicker = false
-//
-//    var body: some View {
-//        ScrollView {
-//            VStack(spacing: 20) {
-//                // File Requirements Section
-//                VStack(alignment: .leading, spacing: 20) {
-//                    Text("File Requirements")
-//                        .font(.title2)
-//                        .fontWeight(.semibold)
-//
-//                    Group {
-//                        HStack {
-//                            Image(systemName: "doc.text.fill")
-//                            Text("Required Columns")
-//                        }
-//                        .font(.subheadline)
-//
-//                        Text("ISBN, Title, Author, Publisher, Year")
-//                            .foregroundColor(.gray)
-//                    }
-//
-//                    Group {
-//                        HStack {
-//                            Image(systemName: "info.circle.fill")
-//                            Text("File Format")
-//                        }
-//                        .font(.subheadline)
-//
-//                        Text("First row must contain column headers")
-//                            .foregroundColor(.gray)
-//                    }
-//                }
-//                .padding(.horizontal)
-//
-//                // Choose File Button Section (now at the top)
-//                VStack(spacing: 15) {
-//                    Button(action: {
-//                        showingFilePicker = true
-//                    }) {
-//                        Text("Choose File")
-//                            .font(.headline)
-//                            .foregroundColor(.white)
-//                            .frame(maxWidth: .infinity)
-//                            .padding(.vertical, 14)
-//                            .background(Color.blue)
-//                            .cornerRadius(12)
-//                    }
-//
-//                    Text("Supported format: .CSV")
-//                        .font(.caption)
-//                        .foregroundColor(.gray)
-//                }
-//                .padding(.horizontal)
-//
-//                // Import Button Section (just below Choose File)
-//                Button(action: {
-//                    // Import action
-//                }) {
-//                    Text("Import Books")
-//                        .font(.headline)
-//                        .foregroundColor(.white)
-//                        .frame(maxWidth: .infinity)
-//                        .padding(.vertical, 14)
-//                        .background(Color.blue)
-//                        .cornerRadius(12)
-//                }
-//                .padding(.horizontal)
-//                .padding(.bottom, 20)
-//            }
-//            .padding(.top)
-//        }
-//        .navigationTitle("Bulk Import")
-//        .sheet(isPresented: $showingFilePicker) {
-//            Text("File Picker")
-//        }
-//        .ignoresSafeArea(.keyboard, edges: .bottom) // Avoids keyboard issues
-//    }
-//}
-//
-//
-//#Preview {
-//    BulkImportView(viewModel: LibraryViewModel())
-//}
-
-
 
 import SwiftUI
 import UniformTypeIdentifiers
@@ -257,16 +167,16 @@ struct BulkImportView: View {
                     let year = columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
                     let genre = columns.count > 5 ? columns[5].trimmingCharacters(in: .whitespacesAndNewlines) : nil
                     
-//                    let newBook = Book(
-//                        isbn: isbn,
-//                        title: title,
-//                        author: author,
-//                        publisher: publisher,
-//                        year: year,
-//                        genre: genre
-//                    )
+                    //                    let newBook = Book(
+                    //                        isbn: isbn,
+                    //                        title: title,
+                    //                        author: author,
+                    //                        publisher: publisher,
+                    //                        year: year,
+                    //                        genre: genre
+                    //                    )
                     
-//                    viewModel.addBook(newBook)
+                    //                    viewModel.addBook(newBook)
                 }
             }
             importStatus = "Books imported successfully!"
