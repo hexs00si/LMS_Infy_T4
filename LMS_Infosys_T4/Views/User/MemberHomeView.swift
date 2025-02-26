@@ -230,7 +230,7 @@ struct MainTabView: View {
                     Label("Issue Books", systemImage: "book.closed")
                 }
 
-            Text("Profile")
+            UserProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
                 }
