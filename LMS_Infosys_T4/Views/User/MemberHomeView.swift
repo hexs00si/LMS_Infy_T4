@@ -46,13 +46,13 @@ struct MemberHomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .navigationBarItems(
                 trailing: HStack {
-                    Button(action: {
-                        print("Bell icon tapped")
-                    }) {
-                        Image(systemName: "bell.fill")
-                            .font(.title2)
-                            .foregroundColor(.black)
-                    }
+//                    Button(action: {
+//                        print("Bell icon tapped")
+//                    }) {
+//                        Image(systemName: "bell.fill")
+//                            .font(.title2)
+//                            .foregroundColor(.black)
+//                    }
                     
                     Button(action: {
                         showingGenreFilter.toggle()
