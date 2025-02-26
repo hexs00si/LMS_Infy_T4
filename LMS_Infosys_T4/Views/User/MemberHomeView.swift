@@ -69,6 +69,18 @@ struct MemberHomeView: View {
             .onAppear {
                 viewModel.fetchBooks() // Fetch books when the view appears
             }
+            .refreshable {
+               await refreshData()
+           }
+            
+        }
+    }
+    
+    private func refreshData() async {
+        do {
+            try await viewModel.fetchBooks()
+        } catch {
+            print("Error refreshing books: \(error.localizedDescription)")
         }
     }
 }
