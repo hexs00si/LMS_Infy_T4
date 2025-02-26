@@ -5,15 +5,15 @@ struct LibrariansView: View {
     @State private var showingAddLibrarian = false
     @State private var selectedLibrarian: Librarian?
     @State private var searchText = ""
-
+    
     var filteredLibrarians: [Librarian] {
-//        filterItems(items: viewModel.librarians, searchText: searchText, keyPath: \.name)
         if searchText.isEmpty {
             return viewModel.librarians
         } else {
             return viewModel.librarians.filter { librarian in
                 librarian.name.localizedCaseInsensitiveContains(searchText) ||
-                librarian.email.localizedCaseInsensitiveContains(searchText)
+                librarian.email.localizedCaseInsensitiveContains(searchText) ||
+                librarian.phoneNumber.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -21,46 +21,20 @@ struct LibrariansView: View {
     var body: some View {
         NavigationView {
             Group {
-                if viewModel.librarians.isEmpty {
+                if viewModel.isLoading {
+                    ProgressView("Loading librarians...")
+                } else if viewModel.librarians.isEmpty {
                     ContentUnavailableView(
                         "No Librarians",
                         systemImage: "person.2.slash",
                         description: Text("Start by adding your first librarian")
                     )
                 } else {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Text("Total Librarians: \(filteredLibrarians.count)")
-                                .font(.system(size: 14))
-                                .foregroundColor(.gray)
-                                .padding(.horizontal)
-                        }
-                        SearchBar(text: $searchText, placeholder: "Search by name or email...")
-                        ScrollView {
-                            LazyVStack(spacing: 16) {
-                                ForEach(filteredLibrarians) { librarian in
-                                    LibrarianRowView(librarian: librarian)
-                                        .onTapGesture {
-                                            selectedLibrarian = librarian
-                                        }
-                                        .padding(.horizontal)
-                                }
-                            }
-                            .padding(.vertical)
-                        }
-                        .background(Color(.systemGroupedBackground))
-                    }
+                    librarianList
                 }
             }
             .navigationTitle("Librarians")
-            .toolbar {
-                Button(action: {
-                    showingAddLibrarian = true
-                }) {
-                    Image(systemName: "plus")
-                }
-            }
+            .navigationBarItems(trailing: addButton)
             .sheet(isPresented: $showingAddLibrarian) {
                 AddLibrarianView(viewModel: viewModel) {
                     viewModel.fetchLibrarians() // Refresh the list when a librarian is added
@@ -69,33 +43,65 @@ struct LibrariansView: View {
             .sheet(item: $selectedLibrarian) { librarian in
                 LibrarianDetailView(librarian: librarian, viewModel: viewModel)
             }
-            .onAppear {
-                viewModel.fetchLibrarians() // Ensure data is up-to-date when the view appears
+            .overlay(
+                Group {
+                    if let error = viewModel.error {
+                        ErrorBanner(message: error) {
+                            viewModel.error = nil
+                        }
+                    }
+                }
+            )
+            .navigationBarBackButtonHidden(true)
+        }
+    }
+    
+    private var librarianList: some View {
+        VStack {
+            HStack {
+                Spacer()
+                Text("Total Librarians: \(filteredLibrarians.count)")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .padding(.horizontal)
             }
-            .navigationBarBackButtonHidden(true) // Add this line to prevent going back to login
+            
+            SearchBar(text: $searchText, placeholder: "Search by name, email or phone...")
+                .padding(.horizontal)
+                .padding(.top, 8)
+            
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    ForEach(filteredLibrarians) { librarian in
+                        LibrarianRowView(librarian: librarian)
+                            .onTapGesture {
+                                selectedLibrarian = librarian
+                            }
+                            .padding(.horizontal)
+                    }
+                }
+                .padding(.vertical)
+            }
+            .background(Color(.systemGroupedBackground))
+            .refreshable {
+                viewModel.fetchLibrarians()
+            }
+        }
+    }
+    
+    private var addButton: some View {
+        Button(action: { showingAddLibrarian = true }) {
+            Image(systemName: "plus")
+                .font(.system(size: 16, weight: .semibold))
         }
     }
 }
 
+
+
+// Keeping the existing LibrarianRowView as it looks good
 struct LibrarianRowView: View {
     let librarian: Librarian
-    
-//    var body: some View {
-//        VStack(alignment: .leading, spacing: 4) {
-//            Text(librarian.name)
-//                .font(.headline)
-//            Text(librarian.email)
-//                .font(.subheadline)
-//                .foregroundColor(.secondary)
-//            HStack {
-//                Image(systemName: "phone")
-//                Text(librarian.phoneNumber)
-//                    .font(.caption)
-//            }
-//            .foregroundColor(.secondary)
-//        }
-//        .padding(.vertical, 8)
-//    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -138,7 +144,6 @@ struct LibrarianRowView: View {
         )
     }
 }
-
 
 #Preview {
     LibrariansView()
