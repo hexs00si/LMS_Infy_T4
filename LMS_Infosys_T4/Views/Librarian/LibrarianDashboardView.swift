@@ -196,16 +196,16 @@ struct LibrarianDashboardView: View {
                 Label("Requests", systemImage: "doc.text.fill")
             }
             
-            NavigationView {
+//            NavigationView {
                 ReturnBookView(viewModel: viewModel)
-            }
+//            }
             .tabItem {
                 Label("Return", image: "custom.text.book.closed.fill.badge.arrow.up")
             }
             
-            NavigationView {
-                ProfileView()
-            }
+//            NavigationView {
+                LibrarianProfileView()
+//            }
             .tabItem {
                 Label("Profile", systemImage: "person.fill")
             }
