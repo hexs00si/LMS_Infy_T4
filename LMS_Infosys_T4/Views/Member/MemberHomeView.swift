@@ -162,7 +162,7 @@ struct BookCard: View {
             }
             .padding()
             .frame(width: 170, height: 275)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .cornerRadius(12)
             .shadow(radius: 2)
         }
