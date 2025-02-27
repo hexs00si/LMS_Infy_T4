@@ -18,9 +18,22 @@
 		DB62D62C2D647FF100C8191E /* LMS_Infosys_T4.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LMS_Infosys_T4.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FF46BA0A2D7089FB00FB208F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"LMS-Infosys-T4-Info.plist",
+			);
+			target = DB62D62B2D647FF100C8191E /* LMS_Infosys_T4 */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DB62D62E2D647FF100C8191E /* LMS_Infosys_T4 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FF46BA0A2D7089FB00FB208F /* Exceptions for "LMS_Infosys_T4" folder in "LMS_Infosys_T4" target */,
+			);
 			path = LMS_Infosys_T4;
 			sourceTree = "<group>";
 		};
@@ -283,9 +296,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 666JNQ5YGA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "LMS-Infosys-T4-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need to access files.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -299,7 +313,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcd;
+				PRODUCT_BUNDLE_IDENTIFIER = zxdf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -320,9 +334,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"LMS_Infosys_T4/Preview Content\"";
-				DEVELOPMENT_TEAM = 8LKGU9SM7B;
+				DEVELOPMENT_TEAM = 666JNQ5YGA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "LMS-Infosys-T4-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access camera.";
 				INFOPLIST_KEY_NSDocumentsFolderUsageDescription = "We need to access files.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -336,7 +351,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ghugugvcd;
+				PRODUCT_BUNDLE_IDENTIFIER = zxdf;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
