@@ -3,11 +3,6 @@
 //  libraraian 1
 //
 //  Created by Kinshuk Garg on 14/02/25.
-////
-//  AddSingleBookView.swift
-//  libraraian 1
-//
-//  Created by Kinshuk Garg on 14/02/25.
 //
 
 import SwiftUI
@@ -206,40 +201,51 @@ struct AddSingleBookView: View {
         return imageData.base64EncodedString()
     }
     
+    // Update the saveBook function in AddSingleBookView
     private func saveBook() async {
         guard let yearInt = Int(publishYear) else { return }
         
         isLoading = true
-        defer { isLoading = false }
-        
-        // Convert image to base64 if available
-        var imageBase64: String? = nil
-        if let image = selectedImage {
-            imageBase64 = convertImageToBase64(image)
-        }
-        
-        let newBook = Book(
-            libraryID: currentLibraryID,
-            addedByLibrarian: currentLibrarianID,
-            title: title,
-            author: author,
-            isbn: isbn,
-            availabilityStatus: .available,
-            publishYear: yearInt,
-            genre: genre,
-            coverImage: imageBase64,  // Now passing the base64 string
-            description: description,
-            quantity: quantity,
-            bookIssueCount: 0,
-            availableCopies: quantity
-        )
         
         do {
+            // Check if a book with this ISBN already exists
+            let bookExists = try await viewModel.checkIfBookExists(isbn: isbn)
+            
+            if bookExists {
+                errorMessage = "A book with ISBN \(isbn) already exists in the library, please change the quantity instead."
+                isLoading = false
+                return
+            }
+            
+            // Convert image to base64 if available
+            var imageBase64: String? = nil
+            if let image = selectedImage {
+                imageBase64 = convertImageToBase64(image)
+            }
+            
+            let newBook = Book(
+                libraryID: currentLibraryID,
+                addedByLibrarian: currentLibrarianID,
+                title: title,
+                author: author,
+                isbn: isbn,
+                availabilityStatus: .available,
+                publishYear: yearInt,
+                genre: genre,
+                coverImage: imageBase64,  // Now passing the base64 string
+                description: description,
+                quantity: quantity,
+                bookIssueCount: 0,
+                availableCopies: quantity
+            )
+            
             try await viewModel.addBook(newBook)
             presentationMode.wrappedValue.dismiss()
         } catch {
             errorMessage = error.localizedDescription
         }
+        
+        isLoading = false
     }
     
     private func handleScan(result: Result<ScanResult, ScanError>) {

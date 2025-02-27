@@ -2,7 +2,6 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
-
 class LibraryViewModel: ObservableObject {
     @Published var books: [Book] = []
     @Published var isLoading = false
@@ -68,6 +67,20 @@ class LibraryViewModel: ObservableObject {
                 self.error = error.localizedDescription
                 self.isLoading = false
             }
+            throw error
+        }
+    }
+    
+    // Add this function to LibraryViewModel
+    func checkIfBookExists(isbn: String) async throws -> Bool {
+        do {
+            let snapshot = try await db.collection("books")
+                .whereField("isbn", isEqualTo: isbn)
+                .limit(to: 1)
+                .getDocuments()
+            
+            return !snapshot.documents.isEmpty
+        } catch {
             throw error
         }
     }
@@ -743,5 +756,3 @@ class LibraryViewModel: ObservableObject {
         }
      }
 }
-
-
