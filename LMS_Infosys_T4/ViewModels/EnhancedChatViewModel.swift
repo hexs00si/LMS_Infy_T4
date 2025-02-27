@@ -29,7 +29,8 @@ class EnhancedChatViewModel: ObservableObject {
     private let speechSynthesizer = AVSpeechSynthesizer()
     private var lastMentionedBook: String?
     
-    let availableLanguages = ["English", "Spanish", "French", "German", "Chinese", "Japanese", "Hindi", "Arabic"]
+    // Updated to include Kannada
+    let availableLanguages = ["English", "Spanish", "French", "German", "Chinese", "Japanese", "Hindi", "Arabic", "Kannada"]
     
     init(apiToken: String) {
         self.huggingFaceService = EnhancedHuggingFaceService(apiToken: apiToken)
@@ -324,6 +325,7 @@ class EnhancedChatViewModel: ObservableObject {
         case "Japanese": utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
         case "Hindi": utterance.voice = AVSpeechSynthesisVoice(language: "hi-IN")
         case "Arabic": utterance.voice = AVSpeechSynthesisVoice(language: "ar-SA")
+        case "Kannada": utterance.voice = AVSpeechSynthesisVoice(language: "kn-IN") // Added Kannada
         default: utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
         }
         utterance.rate = 0.5
