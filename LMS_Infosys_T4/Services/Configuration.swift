@@ -8,7 +8,7 @@
 import Foundation
 
 struct Configuration {
-    static let huggingFaceToken = "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"
+    static let huggingFaceToken = ""
     
     
 }
