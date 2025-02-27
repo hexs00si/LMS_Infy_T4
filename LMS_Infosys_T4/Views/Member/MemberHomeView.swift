@@ -44,9 +44,9 @@ struct MemberHomeView: View {
                         Button(action: {
                             showingGenreFilter.toggle()
                         }) {
-                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            Image(systemName: "line.3.horizontal.decrease.circle")
                                 .font(.title2)
-                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                         }
                     }
                 )
@@ -162,7 +162,7 @@ struct BookCard: View {
             }
             .padding()
             .frame(width: 170, height: 275)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .cornerRadius(12)
             .shadow(radius: 2)
         }

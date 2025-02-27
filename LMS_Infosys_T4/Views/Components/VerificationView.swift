@@ -2,6 +2,7 @@ import SwiftUI
 
 struct VerificationView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) var colorScheme
     @Binding var isPresented: Bool
     
     var email: String
@@ -21,7 +22,7 @@ struct VerificationView: View {
                 Text("Verify Your Account")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.black)
+//                    .foregroundColor(.black)
                 
                 Text("Enter the 4-digit code sent to \(email)")
                     .foregroundColor(.gray)
@@ -68,8 +69,8 @@ struct VerificationView: View {
                     Text("Submit")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.black)
-                        .foregroundColor(.white)
+                        .background(colorScheme == .dark ? Color.white : Color.black)
+                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
                         .cornerRadius(10)
                 }
                 .padding(.horizontal, 40)
@@ -82,7 +83,7 @@ struct VerificationView: View {
                     }
                 }) {
                     Text("Resend Code")
-                        .foregroundColor(.blue)
+//                        .foregroundColor(.blue)
                         .fontWeight(.bold)
                 }
                 // Add a back button
@@ -90,7 +91,7 @@ struct VerificationView: View {
                     isPresented = false  // This will trigger the dismissal
                 }) {
                     Text("Cancel")
-                        .foregroundColor(.blue)
+//                        .foregroundColor(.blue)
                         .frame(maxWidth: .infinity)
                         .padding()
                 }

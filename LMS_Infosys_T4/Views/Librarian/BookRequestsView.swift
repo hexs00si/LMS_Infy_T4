@@ -84,9 +84,6 @@ struct BookRequestsView: View {
                 }
             }
             .navigationTitle(selectedTab == .bookRequests ? "Issue Requests" : "Book Reservations")
-            //            .background(Color(.systemGroupedBackground))
-            .background(Color(.secondarySystemGroupedBackground))
-            
             .alert(alertMessage, isPresented: $showAlert) {
                 Button("OK", role: .cancel) {}
             }

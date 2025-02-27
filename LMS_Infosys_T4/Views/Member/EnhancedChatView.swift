@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct EnhancedChatView: View {
     @StateObject private var viewModel: EnhancedChatViewModel
     @Binding var isShowing: Bool
@@ -80,7 +78,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .shadow(color: Color.black.opacity(0.05), radius: 2)
             
             // Language and Speech indicators
@@ -115,7 +113,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 6)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             
             // Messages
             ScrollViewReader { scrollView in
@@ -178,7 +176,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Color(.systemBackground))
         }
         .onAppear {
             // Focus the input when the view appears
@@ -231,7 +229,7 @@ struct ChatBubble: View {
                         Text(message.content)
                             .padding(12)
                             .background(Color(.systemGray5))
-                            .foregroundColor(.black)
+//                            .foregroundColor(.black)
                             .cornerRadius(16)
                     }
                 }

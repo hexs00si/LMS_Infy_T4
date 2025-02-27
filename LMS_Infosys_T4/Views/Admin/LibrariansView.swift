@@ -82,7 +82,7 @@ struct LibrariansView: View {
                 }
                 .padding(.vertical)
             }
-            .background(Color(.systemGroupedBackground))
+//            .background(Color(.systemGroupedBackground))
             .refreshable {
                 viewModel.fetchLibrarians()
             }
@@ -102,6 +102,7 @@ struct LibrariansView: View {
 // Keeping the existing LibrarianRowView as it looks good
 struct LibrarianRowView: View {
     let librarian: Librarian
+//    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -142,7 +143,7 @@ struct LibrarianRowView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
+                .fill(Color(.systemGray6))
                 .shadow(
                     color: Color.black.opacity(0.08),
                     radius: 8,
