@@ -7,6 +7,8 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import FirebaseAuth
+import FirebaseFirestore
 
 struct BulkImportView: View {
     @ObservedObject var viewModel: LibraryViewModel
@@ -135,15 +137,64 @@ struct BulkImportView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
+//    private func parseCSV(fileURL: URL) {
+//        // Start accessing the security-scoped resource
+//        guard fileURL.startAccessingSecurityScopedResource() else {
+//            importStatus = "Permission denied: Cannot access the file."
+//            return
+//        }
+//        
+//        defer {
+//            // Ensure we stop accessing the resource when done
+//            fileURL.stopAccessingSecurityScopedResource()
+//        }
+//        
+//        do {
+//            let data = try String(contentsOf: fileURL, encoding: .utf8)
+//            let rows = data.components(separatedBy: "\n")
+//            guard rows.count > 1 else {
+//                importStatus = "CSV file is empty or invalid."
+//                return
+//            }
+//            
+//            // Parse rows
+//            for (index, row) in rows.enumerated() {
+//                if index == 0 { continue } // Skip header row
+//                let columns = row.components(separatedBy: ",")
+//                if columns.count >= 5 {
+//                    let isbn = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let title = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let author = columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let publisher = columns[3].trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let year = columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
+//                    let genre = columns.count > 5 ? columns[5].trimmingCharacters(in: .whitespacesAndNewlines) : nil
+//                    
+//                    //                    let newBook = Book(
+//                    //                        isbn: isbn,
+//                    //                        title: title,
+//                    //                        author: author,
+//                    //                        publisher: publisher,
+//                    //                        year: year,
+//                    //                        genre: genre
+//                    //                    )
+//                    
+//                    //                    viewModel.addBook(newBook)
+//                }
+//            }
+//            importStatus = "Books imported successfully!"
+//        } catch {
+//            importStatus = "Error reading CSV file: \(error.localizedDescription)"
+//        }
+    
+    
+
     private func parseCSV(fileURL: URL) {
-        // Start accessing the security-scoped resource
         guard fileURL.startAccessingSecurityScopedResource() else {
             importStatus = "Permission denied: Cannot access the file."
             return
         }
         
         defer {
-            // Ensure we stop accessing the resource when done
             fileURL.stopAccessingSecurityScopedResource()
         }
         
@@ -155,31 +206,83 @@ struct BulkImportView: View {
                 return
             }
             
-            // Parse rows
-            for (index, row) in rows.enumerated() {
-                if index == 0 { continue } // Skip header row
-                let columns = row.components(separatedBy: ",")
-                if columns.count >= 5 {
-                    let isbn = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let title = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let author = columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let publisher = columns[3].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let year = columns[4].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let genre = columns.count > 5 ? columns[5].trimmingCharacters(in: .whitespacesAndNewlines) : nil
+            guard let currentUser = Auth.auth().currentUser else {
+                importStatus = "Error: No user logged in"
+                return
+            }
+            
+            Task {
+                do {
+                    let librarianDoc = try await Firestore.firestore()
+                        .collection("librarians")
+                        .document(currentUser.uid)
+                        .getDocument()
                     
-                    //                    let newBook = Book(
-                    //                        isbn: isbn,
-                    //                        title: title,
-                    //                        author: author,
-                    //                        publisher: publisher,
-                    //                        year: year,
-                    //                        genre: genre
-                    //                    )
+                    guard let libraryID = librarianDoc.data()?["libraryID"] as? String else {
+                        importStatus = "Error: Could not determine library ID"
+                        return
+                    }
                     
-                    //                    viewModel.addBook(newBook)
+                    var successCount = 0
+                    var failureCount = 0
+                    
+                    for (index, row) in rows.enumerated() {
+                        if index == 0 { continue } // Skip header row
+                        
+                        let columns = row.components(separatedBy: ",")
+                        guard columns.count >= 9 else { continue }
+                        
+                        let title = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let author = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let isbn = columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let genre = columns[3].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let publishYear = Int(columns[4].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                        let description = columns[5].trimmingCharacters(in: .whitespacesAndNewlines)
+                        let availableCopies = Int(columns[6].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 1
+                        let quantity = Int(columns[7].trimmingCharacters(in: .whitespacesAndNewlines)) ?? 1
+                        let status = columns[8].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                        
+                        let availabilityStatus: AvailabilityStatus = status == "available" ? .available : .checkedOut
+                        
+                        if !title.isEmpty && !author.isEmpty && !isbn.isEmpty {
+                            let newBook = Book(
+                                id: nil,
+                                libraryID: libraryID,
+                                addedByLibrarian: currentUser.uid,
+                                title: title,
+                                author: author,
+                                isbn: isbn,
+                                availabilityStatus: availabilityStatus,
+                                publishYear: publishYear,
+                                genre: genre,
+                                coverImage: "",
+                                description: description,
+                                quantity: quantity,
+                                bookIssueCount: 0,
+                                availableCopies: availableCopies
+                            )
+                            
+                            do {
+                                try await viewModel.addBook(newBook)
+                                successCount += 1
+                            } catch {
+                                failureCount += 1
+                                print("Error adding book: \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                    
+                    await MainActor.run {
+                        importStatus = "Import completed: \(successCount) books added successfully, \(failureCount) failed"
+                    }
+                    
+                } catch {
+                    await MainActor.run {
+                        importStatus = "Error: \(error.localizedDescription)"
+                    }
                 }
             }
-            importStatus = "Books imported successfully!"
+            
         } catch {
             importStatus = "Error reading CSV file: \(error.localizedDescription)"
         }
