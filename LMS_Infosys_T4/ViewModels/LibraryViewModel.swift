@@ -80,6 +80,20 @@ class LibraryViewModel: ObservableObject {
         }
     }
     
+    // Add this function to LibraryViewModel
+    func checkIfBookExists(isbn: String) async throws -> Bool {
+        do {
+            let snapshot = try await db.collection("books")
+                .whereField("isbn", isEqualTo: isbn)
+                .limit(to: 1)
+                .getDocuments()
+            
+            return !snapshot.documents.isEmpty
+        } catch {
+            throw error
+        }
+    }
+    
     func updateBookQuantity(bookID: String, newQuantity: Int) async throws {
         let db = Firestore.firestore()
         let bookRef = db.collection("books").document(bookID)
@@ -668,6 +682,82 @@ class LibraryViewModel: ObservableObject {
         try await batch.commit()
     }
     
+    // Add this function to the LibraryViewModel class
+    func fetchReturnedBooks() async throws -> [ReturnBookHistoryView.ReturnedBookInfo] {
+        let db = Firestore.firestore()
+        
+        // Get the current logged-in user
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        // First, get the librarian document to find which library they're assigned to
+        let librarianDoc = try await db.collection("librarians").document(currentUser.uid).getDocument()
+        
+        guard let librarianData = librarianDoc.data(),
+              let libraryID = librarianData["libraryID"] as? String else {
+            throw NSError(domain: "LibraryError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not a librarian or not assigned to any library"])
+        }
+        
+        // Get all returned books for this library
+        let issuesSnapshot = try await db.collection("bookIssues")
+            .whereField("libraryId", isEqualTo: libraryID)
+            .whereField("isReturned", isEqualTo: true)
+            .getDocuments()
+        
+        var returnedBooks: [ReturnBookHistoryView.ReturnedBookInfo] = []
+        
+        for document in issuesSnapshot.documents {
+            let data = document.data()
+            
+            // Extract book ID and user ID
+            guard let bookId = data["bookId"] as? String,
+                  let userId = data["userId"] as? String,
+                  let issueDateTimestamp = data["issueDate"] as? Timestamp,
+                  let returnDateTimestamp = data["returnDate"] as? Timestamp else {
+                continue
+            }
+            
+            // Extract main book ID from the book copy ID
+            let components = bookId.components(separatedBy: "-")
+            guard let mainBookID = components.first else { continue }
+            
+            // Fetch book details
+            let bookDoc = try await db.collection("books").document(mainBookID).getDocument()
+            guard let bookData = bookDoc.data() else { continue }
+            
+            let title = bookData["title"] as? String ?? "Unknown Title"
+            let author = bookData["author"] as? String ?? "Unknown Author"
+            let isbn = bookData["isbn"] as? String ?? "Unknown ISBN"
+            let coverImage = bookData["coverImage"] as? String ?? ""
+            
+            // Fetch user details
+            let userDoc = try await db.collection("members").document(userId).getDocument()
+            guard let userData = userDoc.data() else { continue }
+            
+            let userName = userData["name"] as? String ?? "Unknown User"
+            let userEmail = userData["email"] as? String ?? ""
+            
+            // Create ReturnedBookInfo object
+            let returnedBook = ReturnBookHistoryView.ReturnedBookInfo(
+                id: document.documentID,
+                title: title,
+                author: author,
+                isbn: isbn,
+                bookId: bookId,
+                userId: userId,
+                userName: userName,
+                userEmail: userEmail,
+                issueDate: issueDateTimestamp.dateValue(),
+                returnDate: returnDateTimestamp.dateValue(),
+                coverImage: coverImage
+            )
+            
+            returnedBooks.append(returnedBook)
+        }
+        
+        return returnedBooks
+    }
     
     func addToWishlist(book: Book) async throws {
         guard let userId = Auth.auth().currentUser?.uid else {

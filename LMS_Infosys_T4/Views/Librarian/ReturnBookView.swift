@@ -5,7 +5,6 @@
 //  Created by Gaganveer Bawa on 26/02/25.
 //
 
-
 import SwiftUI
 import CodeScanner
 import Firebase

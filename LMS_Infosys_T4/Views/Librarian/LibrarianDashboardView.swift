@@ -186,7 +186,7 @@ struct LibrarianDashboardView: View {
                 Label("Requests", systemImage: "doc.text.fill")
             }
             
-            ReturnBookView(viewModel: viewModel)
+            ReturnBookHistoryView(viewModel: viewModel)
                 .tabItem {
                     Label("Return", image: "custom.text.book.closed.fill.badge.arrow.up")
                 }

@@ -20,7 +20,7 @@ struct BookListView: View {
                 Button(action: {
                     selectedBook = book
                 }) {
-                    BookListItemView(book: book)
+                    BookListItemView(book: book, viewModel: viewModel)
                 }
                 .buttonStyle(PlainButtonStyle()) 
             }
