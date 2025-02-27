@@ -14,6 +14,7 @@ struct EnhancedChatView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Header
             HStack {
                 Button(action: { isShowing = false }) {
                     Image(systemName: "xmark")
@@ -58,6 +59,7 @@ struct EnhancedChatView: View {
             .background(Color.white)
             .shadow(color: Color.black.opacity(0.05), radius: 2)
             
+            // Language and Speech Indicators
             HStack(spacing: 12) {
                 HStack(spacing: 4) {
                     Image(systemName: "globe").font(.caption)
@@ -84,6 +86,7 @@ struct EnhancedChatView: View {
             .padding(.vertical, 6)
             .background(Color.white)
             
+            // Messages Area
             ScrollViewReader { scrollView in
                 ScrollView {
                     LazyVStack(spacing: 12) {
@@ -103,9 +106,14 @@ struct EnhancedChatView: View {
                         withAnimation { scrollView.scrollTo(lastMessage.id, anchor: .bottom) }
                     }
                 }
+                // Added tap gesture to dismiss keyboard when tapping the conversation area
+                .onTapGesture {
+                    isInputFocused = false
+                }
             }
             .background(Color(.systemGray6))
             
+            // Typing Indicator
             if viewModel.isTyping {
                 HStack {
                     Text("Typing").font(.caption).foregroundColor(.gray)
@@ -117,6 +125,7 @@ struct EnhancedChatView: View {
                 .background(Color.white)
             }
             
+            // Input Area
             HStack {
                 TextField("Type a message...", text: $viewModel.newMessage)
                     .padding(10)
@@ -125,6 +134,15 @@ struct EnhancedChatView: View {
                     .focused($isInputFocused)
                     .submitLabel(.send)
                     .onSubmit { viewModel.sendMessage() }
+                    // Added toolbar with Done button to dismiss keyboard
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Done") {
+                                isInputFocused = false
+                            }
+                        }
+                    }
                 
                 Button(action: { viewModel.sendMessage() }) {
                     Image(systemName: "arrow.up.circle.fill")
@@ -142,9 +160,7 @@ struct EnhancedChatView: View {
                 NavigationView { BookDetailView(book: book) }
             }
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { isInputFocused = true }
-        }
+        // Removed .onAppear auto-focus to prevent keyboard from opening automatically
         .onDisappear { viewModel.stopSpeaking() }
     }
 }
