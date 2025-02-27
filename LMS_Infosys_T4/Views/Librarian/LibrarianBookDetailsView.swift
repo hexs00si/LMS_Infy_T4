@@ -5,7 +5,6 @@
 //  Created by Gaganveer Bawa on 27/02/25.
 //
 
-
 import SwiftUI
 
 struct LibrarianBookDetailsView: View {
@@ -26,7 +25,7 @@ struct LibrarianBookDetailsView: View {
                     BookCoverView(book: book)
                     
                     // Book Metadata
-                    BookMetadataView(book: book)
+                    BookMetadataView(book: book, libraryName: Binding.constant(libraryName))
                     
                     // Book Description
                     BookDescriptionView(book: book)

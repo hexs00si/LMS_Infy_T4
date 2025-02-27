@@ -16,7 +16,7 @@ struct BookDetailsView: View {
                 ScrollView {
                     VStack(alignment: .center, spacing: 16) {
                         BookCoverView(book: book)
-                        BookMetadataView(book: book)
+                        BookMetadataView(book: book, libraryName: $libraryName)
                         BookDescriptionView(book: book)
                     }
                     .frame(minHeight: geometry.size.height)
@@ -211,6 +211,7 @@ struct BookDescriptionView: View {
 
 struct BookMetadataView: View {
     let book: Book
+    @Binding var libraryName: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -225,7 +226,7 @@ struct BookMetadataView: View {
                 .padding(.horizontal)
             
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
-                ForEach(book.genre.split(separator: ",").map { String($0) }, id: \.self) { category in
+                ForEach(book.genre.split(separator: ",").map { String($0) }, id: \ .self) { category in
                     Text(category.trimmingCharacters(in: .whitespacesAndNewlines))
                         .font(.caption)
                         .padding(8)
@@ -269,6 +270,15 @@ struct BookMetadataView: View {
                         .foregroundColor(.gray)
                     Spacer()
                     Text("\(book.availableCopies)")
+                        .font(.subheadline)
+                }
+                
+                HStack {
+                    Text("Library")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    Spacer()
+                    Text(libraryName)
                         .font(.subheadline)
                 }
             }
