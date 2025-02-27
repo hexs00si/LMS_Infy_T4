@@ -1,10 +1,3 @@
-//
-//  MemberHomeView.swift
-//  LMS
-//
-//  Created by Udayveer Chhina on 13/02/25.
-//
-
 import SwiftUI
 
 struct MemberHomeView: View {
@@ -12,7 +5,8 @@ struct MemberHomeView: View {
     @State private var searchText = ""
     @State private var showingGenreFilter = false
     @StateObject private var viewModel = LibraryViewModel() // Persistent ViewModel
-    
+    @State private var isShowingChat = false // For showing chat
+
     let categories = ["All Books", "Fiction", "Non-Fiction", "Academic", "Science", "History", "Biography", "Mystery", "Fantasy", "Self-Help"]
     
     var filteredBooks: [Book] {
@@ -26,53 +20,59 @@ struct MemberHomeView: View {
         
         return categoryFilteredBooks
     }
-    
+
     var body: some View {
         NavigationView {
-            VStack {
-                // Search bar for searching books
-                SearchBar(text: $searchText, placeholder: "Search books...")
-                
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        ForEach(filteredBooks) { book in
-                            BookCard(book: book)
+            ZStack { // ZStack to overlay the chat button
+                VStack {
+                    // Search bar for searching books
+                    SearchBar(text: $searchText, placeholder: "Search books...")
+                    
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                            ForEach(filteredBooks) { book in
+                                BookCard(book: book)
+                            }
+                        }
+                        .padding()
+                    }
+                }
+                .navigationTitle(selectedCategory)
+                .navigationBarTitleDisplayMode(.large)
+                .navigationBarItems(
+                    trailing: HStack {
+                        Button(action: {
+                            showingGenreFilter.toggle()
+                        }) {
+                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.black)
                         }
                     }
-                    .padding()
+                )
+                .sheet(isPresented: $showingGenreFilter) {
+                    GenreFilterView(selectedCategory: $selectedCategory)
                 }
-            }
-            .navigationTitle(selectedCategory)
-            .navigationBarTitleDisplayMode(.large)
-            .navigationBarItems(
-                trailing: HStack {
-                    //                    Button(action: {
-                    //                        print("Bell icon tapped")
-                    //                    }) {
-                    //                        Image(systemName: "bell.fill")
-                    //                            .font(.title2)
-                    //                            .foregroundColor(.black)
-                    //                    }
-                    
-                    Button(action: {
-                        showingGenreFilter.toggle()
-                    }) {
-                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.black)
+                .onAppear {
+                    viewModel.fetchBooks() // Fetch books when the view appears
+                }
+                .refreshable {
+                    await refreshData()
+                }
+                
+                // Add floating chat button overlay
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        EnhancedChatButton(isShowingChat: $isShowingChat)
                     }
                 }
-            )
-            .sheet(isPresented: $showingGenreFilter) {
-                GenreFilterView(selectedCategory: $selectedCategory)
             }
-            .onAppear {
-                viewModel.fetchBooks() // Fetch books when the view appears
-            }
-            .refreshable {
-                await refreshData()
-            }
-            
+        }
+        .sheet(isPresented: $isShowingChat) {
+            // Use our Hugging Face-powered chat view
+            EnhancedChatView(apiToken: Configuration.huggingFaceToken, isShowing: $isShowingChat)
         }
     }
     
@@ -177,17 +177,17 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
-            
-            BookShelf()
+
+            Text("Bookshelf")
                 .tabItem {
                     Label("Bookshelf", systemImage: "books.vertical.fill")
                 }
-            
+
             IssuedBooksHistoryView()
                 .tabItem {
                     Label("Issue Books", systemImage: "book.closed")
                 }
-            
+
             UserProfileView()
                 .tabItem {
                     Label("Profile", systemImage: "person.fill")
