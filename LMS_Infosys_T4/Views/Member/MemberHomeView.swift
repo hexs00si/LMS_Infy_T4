@@ -46,7 +46,7 @@ struct MemberHomeView: View {
                         }) {
                             Image(systemName: "line.3.horizontal.decrease.circle")
                                 .font(.title2)
-//                                .foregroundColor(.black)
+                                .foregroundColor(.primary)
                         }
                     }
                 )
