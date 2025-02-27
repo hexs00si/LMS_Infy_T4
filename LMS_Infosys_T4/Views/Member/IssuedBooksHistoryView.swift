@@ -18,7 +18,7 @@ struct IssuedBook: Identifiable {
     let isbn: String
     let coverImage: String
     let isReturned: Bool
-    let isApproved: Bool
+    let status: String // "pending", "approved", "rejected"
     let issueDate: Date
 }
 
@@ -26,7 +26,8 @@ struct IssuedBook: Identifiable {
 enum BookStatus: String, CaseIterable, Identifiable {
     case all = "All"
     case pending = "Pending"
-    case issued = "Issued"
+    case approved = "Approved"
+    case rejected = "Rejected"
     case returned = "Returned"
     
     var id: String { self.rawValue }
@@ -76,32 +77,49 @@ struct IssuedBooksHistoryView: View {
                             
                             // Show status badge
                             HStack {
-                                if book.isApproved {
-                                    if book.isReturned {
-                                        Text("Returned")
+                                switch book.status {
+                                    case "pending":
+                                        Text("Pending")
                                             .font(.caption)
                                             .padding(.horizontal, 8)
                                             .padding(.vertical, 2)
-                                            .background(Color.green.opacity(0.2))
-                                            .foregroundColor(.green)
+                                            .background(Color.orange.opacity(0.2))
+                                            .foregroundColor(.orange)
                                             .clipShape(Capsule())
-                                    } else {
-                                        Text("Issued")
+                                    case "approved":
+                                        if book.isReturned {
+                                            Text("Returned")
+                                                .font(.caption)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 2)
+                                                .background(Color.green.opacity(0.2))
+                                                .foregroundColor(.green)
+                                                .clipShape(Capsule())
+                                        } else {
+                                            Text("Approved")
+                                                .font(.caption)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 2)
+                                                .background(Color.blue.opacity(0.2))
+                                                .foregroundColor(.blue)
+                                                .clipShape(Capsule())
+                                        }
+                                    case "rejected":
+                                        Text("Rejected")
                                             .font(.caption)
                                             .padding(.horizontal, 8)
                                             .padding(.vertical, 2)
-                                            .background(Color.blue.opacity(0.2))
-                                            .foregroundColor(.blue)
+                                            .background(Color.red.opacity(0.2))
+                                            .foregroundColor(.red)
                                             .clipShape(Capsule())
-                                    }
-                                } else {
-                                    Text("Pending")
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 2)
-                                        .background(Color.orange.opacity(0.2))
-                                        .foregroundColor(.orange)
-                                        .clipShape(Capsule())
+                                    default:
+                                        Text(book.status.capitalized)
+                                            .font(.caption)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 2)
+                                            .background(Color.gray.opacity(0.2))
+                                            .foregroundColor(.gray)
+                                            .clipShape(Capsule())
                                 }
                             }
                         }
@@ -196,8 +214,8 @@ struct IssuedBooksHistoryView: View {
             // Convert BookRequests to IssuedBooks
             await fetchBookDetailsForRequests()
             
-            // Add book issues too if needed
-            await fetchIssuedBooks()
+//            // Add book issues too if needed
+//            await fetchIssuedBooks()
             
         } catch {
             print("Error fetching user book history: \(error.localizedDescription)")
@@ -230,7 +248,7 @@ struct IssuedBooksHistoryView: View {
                     isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
                     coverImage: bookData["coverImage"] as? String ?? "",
                     isReturned: false,
-                    isApproved: request.status == "approved",
+                    status: request.status, // Use the actual status from the request
                     issueDate: issueDate
                 )
                 
@@ -245,95 +263,95 @@ struct IssuedBooksHistoryView: View {
         }
     }
     
-    func fetchIssuedBooks() async {
-        guard let currentUser = Auth.auth().currentUser else { return }
-        
-        let db = Firestore.firestore()
-        
-        do {
-            // Get all issued books for the current user
-            let issuesSnapshot = try await db.collection("bookIssues")
-                .whereField("userId", isEqualTo: currentUser.uid)
-                .getDocuments()
-            
-            var bookIssuesData: [IssuedBook] = []
-            
-            for document in issuesSnapshot.documents {
-                let data = document.data()
-                let bookId = data["bookId"] as? String ?? ""
-                let isReturned = data["isReturned"] as? Bool ?? false
-                
-                // Get the book details
-                guard let mainBookId = bookId.split(separator: "-").first else { continue }
-                
-                let bookDoc = try await db.collection("books").document(String(mainBookId)).getDocument()
-                guard let bookData = bookDoc.data() else { continue }
-                
-                // Get issue date from the document
-                let issueDateTimestamp = data["issueDate"] as? Timestamp
-                let issueDate = issueDateTimestamp?.dateValue() ?? Date()
-                
-                // Include in the IssuedBook constructor
-                let book = IssuedBook(
-                    id: document.documentID,
-                    bookID: bookId,
-                    title: bookData["title"] as? String ?? "Unknown Title",
-                    author: bookData["author"] as? String ?? "Unknown Author",
-                    isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
-                    coverImage: bookData["coverImage"] as? String ?? "",
-                    isReturned: isReturned,
-                    isApproved: true,
-                    issueDate: issueDate
-                )
-                
-                bookIssuesData.append(book)
-            }
-            
-            DispatchQueue.main.async {
-                // Combine requests and issues
-                self.issuedBooks.append(contentsOf: bookIssuesData)
-                
-                // Sort by approval status (approved first)
-                self.issuedBooks.sort {
-                    ($0.isApproved ? 1 : 0) > ($1.isApproved ? 1 : 0)
-                }
-            }
-        } catch {
-            print("Error fetching issued books: \(error.localizedDescription)")
-        }
-    }
+//    func fetchIssuedBooks() async {
+//        guard let currentUser = Auth.auth().currentUser else { return }
+//        
+//        let db = Firestore.firestore()
+//        
+//        do {
+//            // Get all issued books for the current user
+//            let issuesSnapshot = try await db.collection("bookIssues")
+//                .whereField("userId", isEqualTo: currentUser.uid)
+//                .getDocuments()
+//            
+//            var bookIssuesData: [IssuedBook] = []
+//            
+//            for document in issuesSnapshot.documents {
+//                let data = document.data()
+//                let bookId = data["bookId"] as? String ?? ""
+//                let isReturned = data["isReturned"] as? Bool ?? false
+//                
+//                // Get the book details
+//                guard let mainBookId = bookId.split(separator: "-").first else { continue }
+//                
+//                let bookDoc = try await db.collection("books").document(String(mainBookId)).getDocument()
+//                guard let bookData = bookDoc.data() else { continue }
+//                
+//                // Get issue date from the document
+//                let issueDateTimestamp = data["issueDate"] as? Timestamp
+//                let issueDate = issueDateTimestamp?.dateValue() ?? Date()
+//                
+//                // Include in the IssuedBook constructor
+//                let book = IssuedBook(
+//                    id: document.documentID,
+//                    bookID: bookId,
+//                    title: bookData["title"] as? String ?? "Unknown Title",
+//                    author: bookData["author"] as? String ?? "Unknown Author",
+//                    isbn: bookData["isbn"] as? String ?? "Unknown ISBN",
+//                    coverImage: bookData["coverImage"] as? String ?? "",
+//                    isReturned: isReturned,
+//                    status: "approved", // Book issues are always approved
+//                    issueDate: issueDate
+//                )
+//                
+//                bookIssuesData.append(book)
+//            }
+//            
+//            DispatchQueue.main.async {
+//                // Combine requests and issues
+//                self.issuedBooks.append(contentsOf: bookIssuesData)
+//                
+//                // Apply any filters
+//                self.applyFilters()
+//            }
+//        } catch {
+//            print("Error fetching issued books: \(error.localizedDescription)")
+//        }
+//    }
     
     func applyFilters() {
-        Task {
-            await fetchUserBooksHistory()
+        DispatchQueue.main.async {
+            var filteredBooks = self.issuedBooks
             
-            DispatchQueue.main.async {
-                // Filter by status
-                if self.filterStatus != .all {
-                    self.issuedBooks = self.issuedBooks.filter { book in
-                        switch self.filterStatus {
-                        case .pending:
-                            return !book.isApproved
-                        case .issued:
-                            return book.isApproved && !book.isReturned
-                        case .returned:
-                            return book.isApproved && book.isReturned
-                        case .all:
-                            return true
-                        }
-                    }
-                }
-                
-                // Sort by date
-                self.issuedBooks.sort { book1, book2 in
-                    switch self.sortBy {
-                    case .newest:
-                        return book1.issueDate > book2.issueDate
-                    case .oldest:
-                        return book1.issueDate < book2.issueDate
+            // Filter by status
+            if self.filterStatus != .all {
+                filteredBooks = filteredBooks.filter { book in
+                    switch self.filterStatus {
+                    case .pending:
+                        return book.status == "pending"
+                    case .approved:
+                        return book.status == "approved" && !book.isReturned
+                    case .rejected:
+                        return book.status == "rejected"
+                    case .returned:
+                        return book.status == "approved" && book.isReturned
+                    case .all:
+                        return true
                     }
                 }
             }
+            
+            // Sort by date
+            filteredBooks.sort { book1, book2 in
+                switch self.sortBy {
+                case .newest:
+                    return book1.issueDate > book2.issueDate
+                case .oldest:
+                    return book1.issueDate < book2.issueDate
+                }
+            }
+            
+            self.issuedBooks = filteredBooks
         }
     }
 }

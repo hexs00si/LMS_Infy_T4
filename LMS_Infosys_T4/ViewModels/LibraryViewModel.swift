@@ -801,5 +801,3 @@ class LibraryViewModel: ObservableObject {
         }
     }
 }
-
-

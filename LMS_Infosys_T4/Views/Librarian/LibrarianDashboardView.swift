@@ -41,53 +41,57 @@ struct BookListItemView: View {
     @ObservedObject var viewModel: LibraryViewModel // Add this line
     
     var body: some View {
-        NavigationLink(destination: LibrarianBookDetailsView(book: book, viewModel: viewModel)) {
-            HStack(spacing: 16) {
-                // Book cover image or placeholder
-                if let coverImage = book.getCoverImage() {
-                    Image(uiImage: coverImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 60, height: 80)
-                        .cornerRadius(6)
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 60, height: 80)
-                        .cornerRadius(6)
-                        .overlay(
-                            Image(systemName: "book.closed")
-                                .foregroundColor(.gray)
-                        )
-                }
+        HStack(spacing: 16) {
+            // Book cover image or placeholder
+            if let coverImage = book.getCoverImage() {
+                Image(uiImage: coverImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 60, height: 80)
+                    .cornerRadius(6)
+            } else {
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 60, height: 80)
+                    .cornerRadius(6)
+                    .overlay(
+                        Image(systemName: "book.closed")
+                            .foregroundColor(.gray)
+                    )
+            }
+            
+            // Book details
+            VStack(alignment: .leading, spacing: 4) {
+                Text(book.title)
+                    .font(.headline)
+                    .lineLimit(1)
                 
-                // Book details
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(book.title)
-                        .font(.headline)
-                        .lineLimit(1)
+                Text(book.author)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+                
+                HStack {
+                    //                    Text(book.genre)
+                    //                        .font(.caption)
+                    //                        .padding(.horizontal, 8)
+                    //                        .padding(.vertical, 3)
+                    //                        .background(Color.blue.opacity(0.1))
+                    //                        .cornerRadius(4)
+                    //
+                    //                    Spacer()
                     
-                    Text(book.author)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                    
-                    HStack {
-                        // Availability badge
-                        Text(book.availabilityStatus.description)
-                            .font(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(availabilityColor(status: book.availabilityStatus).opacity(0.1))
-                            .foregroundColor(availabilityColor(status: book.availabilityStatus))
-                            .cornerRadius(4)
-                    }
+                    // Availability badge
+                    Text(book.availabilityStatus.description)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(availabilityColor(status: book.availabilityStatus).opacity(0.1))
+                        .foregroundColor(availabilityColor(status: book.availabilityStatus))
+                        .cornerRadius(4)
                 }
             }
-            .padding()
-            .background(Color(.systemBackground))
-            .cornerRadius(8)
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     
