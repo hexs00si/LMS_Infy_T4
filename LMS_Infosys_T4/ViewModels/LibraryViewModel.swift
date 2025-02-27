@@ -289,31 +289,44 @@ class LibraryViewModel: ObservableObject {
     }
     
     func approveBookRequest(_ request: BookRequest) async throws {
-        // Get a new document reference for the book issue
         let db = Firestore.firestore()
-        let newIssueRef = db.collection("bookIssues").document()
         
-        // Get the librarian ID (current user)
+        // Get the current librarian ID
         guard let currentUser = Auth.auth().currentUser else {
             throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
         
+        // Fetch the library document to get the loan duration
+        let libraryRef = db.collection("libraries").document(request.libraryuId)
+        let libraryDocument = try await libraryRef.getDocument()
+        
+        guard let libraryData = libraryDocument.data(),
+              let loanDuration = libraryData["loanDuration"] as? Int else {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid library data or loan duration not found."])
+        }
+        
         // Calculate issue and due dates
         let issueDate = Date()
-        guard let dueDate = Calendar.current.date(byAdding: .month, value: 1, to: issueDate) else {
+        
+        // Calculate due date by adding loanDuration days to the issue date
+        guard let dueDate = Calendar.current.date(byAdding: .day, value: loanDuration, to: issueDate) else {
             throw NSError(domain: "DateError", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to calculate due date"])
         }
         
+        // Strip time from the due date
+        let calendar = Calendar.current
+        let dueDateWithoutTime = calendar.startOfDay(for: dueDate)
+        
         // Create book issue data
         let bookIssueData: [String: Any] = [
-            "issueID": newIssueRef.documentID,
+            "issueID": UUID().uuidString,
             "requestID": request.requestId,
             "userId": request.userId,
             "bookId": request.bookId,
             "libraryId": request.libraryuId,
             "issuedByLibrarianId": currentUser.uid,
             "issueDate": Timestamp(date: issueDate),
-            "dueDate": Timestamp(date: dueDate),
+            "dueDate": Timestamp(date: dueDateWithoutTime),
             "returnDate": NSNull(),
             "isReturned": false,
             "fineAmount": 0,
@@ -337,7 +350,7 @@ class LibraryViewModel: ObservableObject {
         let batch = db.batch()
         
         // Add book issue record
-        batch.setData(bookIssueData, forDocument: newIssueRef)
+        batch.setData(bookIssueData, forDocument: db.collection("bookIssues").document())
         
         // Update request with approved status
         batch.updateData([
@@ -362,7 +375,7 @@ class LibraryViewModel: ObservableObject {
         // Commit all changes
         try await batch.commit()
     }
-    
+
     func rejectBookRequest(_ request: BookRequest) async throws {
         let db = Firestore.firestore()
         
