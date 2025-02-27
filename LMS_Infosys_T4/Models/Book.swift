@@ -10,7 +10,7 @@ import FirebaseFirestore
 import FirebaseAuth
 
 // Book model matching the ER diagram
-struct Book: Identifiable, Codable {
+struct Book: Identifiable, Codable, Hashable {
     @DocumentID var id: String?  // This will store the Firestore document ID
     let libraryID: String
     let addedByLibrarian: String

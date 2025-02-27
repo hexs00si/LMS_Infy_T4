@@ -7,72 +7,21 @@ struct BookDetailsView: View {
     @State private var showAlert = false
     @State private var alertMessage = ""
     @State private var libraryName: String = "Loading..."
+    @State private var selectedReadingStatus: String? = nil
+    @State private var showReadingOptions = false
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottom) { // Keeps the button fixed at the bottom
+            ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .center, spacing: 16) {
-                        // Book Cover
                         BookCoverView(book: book)
-                        
-                        // Book Metadata
                         BookMetadataView(book: book)
-                        
-                        // Book Description
                         BookDescriptionView(book: book)
-                        
-                        // New Section for User Actions
-                        VStack(spacing: 16) {
-                            Text("Manage Your Reading")
-                                .font(.headline)
-                                .padding(.top)
-                            
-                            Button(action: {
-                                addToWishlist()
-                            }) {
-                                Text("Want to Read")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                            
-                            Button(action: {
-                                markAsCurrentlyReading()
-                            }) {
-                                Text("Currently Reading")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                            
-                            Button(action: {
-                                markAsCompleted()
-                            }) {
-                                Text("Completed")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.orange)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                            }
-                        }
-                        .padding(.horizontal)
-                        
-                        Spacer() // Pushes the button to the bottom
-                            .frame(height: 80) // Keeps space for the button
                     }
-                    .frame(minHeight: geometry.size.height) // Ensures content fits inside the screen
+                    .frame(minHeight: geometry.size.height)
                 }
                 
-                // Reserve Button
                 ReserveButtonView(
                     book: book,
                     viewModel: viewModel,
@@ -83,6 +32,7 @@ struct BookDetailsView: View {
             }
             .navigationTitle("Book Details")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: menuButton)
             .alert(isPresented: $showAlert) {
                 Alert(title: Text("Library"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
@@ -100,45 +50,56 @@ struct BookDetailsView: View {
         }
     }
     
-    private func addToWishlist() {
-        Task {
-            do {
-                try await viewModel.addToWishlist(book: book)
-                alertMessage = "Added to Want to Read"
-                showAlert = true
-            } catch {
-                alertMessage = "Error adding to Want to Read: \(error.localizedDescription)"
-                showAlert = true
+    private var menuButton: some View {
+        Menu {
+            Button(action: { updateReadingStatus("Want to Read") }) {
+                HStack {
+                    if selectedReadingStatus == "Want to Read" { Image(systemName: "checkmark") }
+                    Text("Want to Read")
+                }
             }
+            Button(action: { updateReadingStatus("Currently Reading") }) {
+                HStack {
+                    if selectedReadingStatus == "Currently Reading" { Image(systemName: "checkmark") }
+                    Text("Currently Reading")
+                }
+            }
+            Button(action: { updateReadingStatus("Completed") }) {
+                HStack {
+                    if selectedReadingStatus == "Completed" { Image(systemName: "checkmark") }
+                    Text("Completed")
+                }
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .imageScale(.large)
         }
     }
     
-    private func markAsCurrentlyReading() {
+    private func updateReadingStatus(_ status: String) {
+        selectedReadingStatus = status
         Task {
             do {
-                try await viewModel.markAsCurrentlyReading(book: book)
-                alertMessage = "Marked as Currently Reading"
+                switch status {
+                case "Want to Read":
+                    try await viewModel.addToWishlist(book: book)
+                case "Currently Reading":
+                    try await viewModel.markAsCurrentlyReading(book: book)
+                case "Completed":
+                    try await viewModel.markAsCompleted(book: book)
+                default:
+                    break
+                }
+                alertMessage = "Marked as \(status)"
                 showAlert = true
             } catch {
-                alertMessage = "Error marking as Currently Reading: \(error.localizedDescription)"
-                showAlert = true
-            }
-        }
-    }
-    
-    private func markAsCompleted() {
-        Task {
-            do {
-                try await viewModel.markAsCompleted(book: book)
-                alertMessage = "Marked as Completed"
-                showAlert = true
-            } catch {
-                alertMessage = "Error marking as Completed: \(error.localizedDescription)"
+                alertMessage = "Error marking as \(status): \(error.localizedDescription)"
                 showAlert = true
             }
         }
     }
 }
+
 
 
 struct BookCoverView: View {

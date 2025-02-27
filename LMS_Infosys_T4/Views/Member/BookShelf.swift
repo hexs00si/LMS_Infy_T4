@@ -1,10 +1,3 @@
-//
-//  LibraryView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Gaganveer Bawa on 27/02/25.
-//
-
 
 import SwiftUI
 
@@ -22,11 +15,17 @@ struct BookShelf: View {
     ]
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     ForEach(sections, id: \.title) { section in
-                        SectionView(title: section.title, books: viewModel.books.filter(section.filter))
+                        let filteredBooks = viewModel.books.filter(section.filter)
+                        SectionView(
+                            title: section.title,
+                            books: Array(filteredBooks.prefix(4)),
+                            allBooks: filteredBooks,
+                            viewModel: viewModel
+                        )
                     }
                 }
                 .padding()
@@ -64,12 +63,22 @@ struct BookShelf: View {
 struct SectionView: View {
     let title: String
     let books: [Book]
+    let allBooks: [Book]
+    let viewModel: LibraryViewModel
     
     var body: some View {
         VStack(alignment: .leading) {
-            Text(title)
-                .font(.title2.bold())
+            NavigationLink(destination: BookListView(title: title, books: allBooks, viewModel: viewModel)) {
+                HStack {
+                    Text(title)
+                        .font(.title2.bold())
+                    
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.blue)
+                }
                 .padding(.leading)
+            }
+            .buttonStyle(PlainButtonStyle())
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
@@ -79,7 +88,7 @@ struct SectionView: View {
                             .padding()
                     } else {
                         ForEach(books) { book in
-                            BookCardView(book: book)
+                            BookCard(book: book)
                         }
                     }
                 }
@@ -89,38 +98,7 @@ struct SectionView: View {
     }
 }
 
-struct BookCardView: View {
-    let book: Book
-    
-    var body: some View {
-        VStack(alignment: .leading) {
-            if let image = book.getCoverImage() {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 120, height: 180)
-                    .cornerRadius(8)
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 120, height: 180)
-                    .cornerRadius(8)
-                    .overlay(Text("No Image").foregroundColor(.gray))
-            }
-            Text(book.title)
-                .font(.headline)
-                .lineLimit(2)
-                .frame(width: 120, alignment: .leading)
-            Text(book.author)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .frame(width: 120, alignment: .leading)
-        }
-    }
+#Preview {
+    BookShelf()
 }
 
-struct LibraryView_Previews: PreviewProvider {
-    static var previews: some View {
-        BookShelf()
-    }
-}

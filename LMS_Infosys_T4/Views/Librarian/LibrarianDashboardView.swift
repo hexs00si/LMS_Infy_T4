@@ -92,6 +92,7 @@ struct BookListItemView: View {
                         .cornerRadius(4)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
         .background(Color(.systemBackground))
