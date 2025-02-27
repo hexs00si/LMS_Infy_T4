@@ -1,10 +1,3 @@
-//
-//  EnhancedChatView.swift
-//  LMS_Infosys_T4
-//
-//  Created by Shravan Rajput on 27/02/25.
-//
-
 import SwiftUI
 
 struct EnhancedChatView: View {
@@ -21,11 +14,8 @@ struct EnhancedChatView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
-                Button(action: {
-                    isShowing = false
-                }) {
+                Button(action: { isShowing = false }) {
                     Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.gray)
@@ -33,36 +23,22 @@ struct EnhancedChatView: View {
                         .background(Color.gray.opacity(0.1))
                         .clipShape(Circle())
                 }
-                
                 Spacer()
-                
                 Text("Book Assistant")
                     .font(.headline)
-                
                 Spacer()
-                
-                // Menu for accessibility options
                 Menu {
-                    // Language submenu
                     Menu("Language (\(viewModel.selectedLanguage))") {
                         ForEach(viewModel.availableLanguages, id: \.self) { language in
-                            Button(action: {
-                                viewModel.changeLanguage(language)
-                            }) {
+                            Button(action: { viewModel.changeLanguage(language) }) {
                                 HStack {
                                     Text(language)
-                                    if viewModel.selectedLanguage == language {
-                                        Image(systemName: "checkmark")
-                                    }
+                                    if viewModel.selectedLanguage == language { Image(systemName: "checkmark") }
                                 }
                             }
                         }
                     }
-                    
-                    // Text-to-speech toggle
-                    Button(action: {
-                        viewModel.toggleSpeech()
-                    }) {
+                    Button(action: { viewModel.toggleSpeech() }) {
                         HStack {
                             Text("Text-to-Speech")
                             Image(systemName: viewModel.isSpeechEnabled ? "speaker.wave.3.fill" : "speaker.slash.fill")
@@ -82,14 +58,10 @@ struct EnhancedChatView: View {
             .background(Color.white)
             .shadow(color: Color.black.opacity(0.05), radius: 2)
             
-            // Language and Speech indicators
             HStack(spacing: 12) {
-                // Language indicator
                 HStack(spacing: 4) {
-                    Image(systemName: "globe")
-                        .font(.caption)
-                    Text(viewModel.selectedLanguage)
-                        .font(.caption)
+                    Image(systemName: "globe").font(.caption)
+                    Text(viewModel.selectedLanguage).font(.caption)
                 }
                 .padding(.vertical, 4)
                 .padding(.horizontal, 8)
@@ -97,26 +69,21 @@ struct EnhancedChatView: View {
                 .foregroundColor(.blue)
                 .cornerRadius(12)
                 
-                // Speech indicator
                 HStack(spacing: 4) {
-                    Image(systemName: viewModel.isSpeechEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
-                        .font(.caption)
-                    Text(viewModel.isSpeechEnabled ? "Speech On" : "Speech Off")
-                        .font(.caption)
+                    Image(systemName: viewModel.isSpeechEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill").font(.caption)
+                    Text(viewModel.isSpeechEnabled ? "Speech On" : "Speech Off").font(.caption)
                 }
                 .padding(.vertical, 4)
                 .padding(.horizontal, 8)
                 .background(viewModel.isSpeechEnabled ? Color.green.opacity(0.1) : Color.gray.opacity(0.1))
                 .foregroundColor(viewModel.isSpeechEnabled ? .green : .gray)
                 .cornerRadius(12)
-                
                 Spacer()
             }
             .padding(.horizontal)
             .padding(.vertical, 6)
             .background(Color.white)
             
-            // Messages
             ScrollViewReader { scrollView in
                 ScrollView {
                     LazyVStack(spacing: 12) {
@@ -133,22 +100,15 @@ struct EnhancedChatView: View {
                 }
                 .onChange(of: viewModel.messages.count) { _ in
                     if let lastMessage = viewModel.messages.last {
-                        withAnimation {
-                            scrollView.scrollTo(lastMessage.id, anchor: .bottom)
-                        }
+                        withAnimation { scrollView.scrollTo(lastMessage.id, anchor: .bottom) }
                     }
                 }
             }
             .background(Color(.systemGray6))
             
-            // Typing indicator
             if viewModel.isTyping {
                 HStack {
-                    Text("Typing")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    
-                    // Animated dots
+                    Text("Typing").font(.caption).foregroundColor(.gray)
                     TypingIndicator()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -157,7 +117,6 @@ struct EnhancedChatView: View {
                 .background(Color.white)
             }
             
-            // Input area
             HStack {
                 TextField("Type a message...", text: $viewModel.newMessage)
                     .padding(10)
@@ -165,13 +124,9 @@ struct EnhancedChatView: View {
                     .cornerRadius(20)
                     .focused($isInputFocused)
                     .submitLabel(.send)
-                    .onSubmit {
-                        viewModel.sendMessage()
-                    }
+                    .onSubmit { viewModel.sendMessage() }
                 
-                Button(action: {
-                    viewModel.sendMessage()
-                }) {
+                Button(action: { viewModel.sendMessage() }) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 30))
                         .foregroundColor(.blue)
@@ -184,21 +139,13 @@ struct EnhancedChatView: View {
         }
         .sheet(isPresented: $showingBookDetail) {
             if let book = selectedBook {
-                NavigationView {
-                    BookDetailView(book: book)
-                }
+                NavigationView { BookDetailView(book: book) }
             }
         }
         .onAppear {
-            // Focus the input when the view appears
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isInputFocused = true
-            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { isInputFocused = true }
         }
-        .onDisappear {
-            // Stop any ongoing speech when view disappears
-            viewModel.stopSpeaking()
-        }
+        .onDisappear { viewModel.stopSpeaking() }
     }
 }
 
@@ -209,11 +156,9 @@ struct EnhancedChatBubble: View {
     
     var body: some View {
         VStack(alignment: message.isUser ? .trailing : .leading, spacing: 8) {
-            // Main message bubble
             HStack {
                 if message.isUser {
                     Spacer()
-                    
                     Text(message.content)
                         .padding(12)
                         .background(Color.blue)
@@ -226,18 +171,13 @@ struct EnhancedChatBubble: View {
                                 Image(systemName: "book.circle.fill")
                                     .font(.title2)
                                     .foregroundColor(.blue)
-                                
-                                // Add speech button for AI messages
-                                Button(action: {
-                                    viewModel.speakText(message.content)
-                                }) {
+                                Button(action: { viewModel.speakText(message.content) }) {
                                     Image(systemName: "speaker.wave.2.circle.fill")
                                         .font(.system(size: 14))
                                         .foregroundColor(.blue)
                                 }
                                 .padding(.top, 2)
                             }
-                            
                             Text(message.content)
                                 .padding(12)
                                 .background(Color(.systemGray5))
@@ -245,26 +185,20 @@ struct EnhancedChatBubble: View {
                                 .cornerRadius(16)
                         }
                     }
-                    
                     Spacer()
                 }
             }
-            
-            // Related books section (if any)
             if !message.isUser, let relatedBooks = message.relatedBooks, !relatedBooks.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Related Books:")
                         .font(.caption)
                         .foregroundColor(.gray)
                         .padding(.leading, 36)
-                    
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(relatedBooks) { book in
                                 RelatedBookCard(book: book)
-                                    .onTapGesture {
-                                        onBookTap(book)
-                                    }
+                                    .onTapGesture { onBookTap(book) }
                             }
                         }
                         .padding(.leading, 36)
@@ -280,7 +214,6 @@ struct RelatedBookCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Book cover
             if let coverImage = book.getCoverImage() {
                 Image(uiImage: coverImage)
                     .resizable()
@@ -298,20 +231,16 @@ struct RelatedBookCard: View {
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(6)
             }
-            
             Text(book.title)
                 .font(.caption)
                 .fontWeight(.medium)
                 .lineLimit(2)
                 .frame(width: 80)
-            
             Text(book.author)
                 .font(.caption2)
                 .foregroundColor(.gray)
                 .lineLimit(1)
                 .frame(width: 80)
-                
-            // Availability badge
             Text(book.availableCopies > 0 ? "Available" : "Unavailable")
                 .font(.system(size: 8))
                 .fontWeight(.semibold)
@@ -336,42 +265,21 @@ struct TypingIndicator: View {
     
     var body: some View {
         HStack(spacing: 2) {
-            Circle()
-                .frame(width: 4, height: 4)
-                .scaleEffect(showFirstDot ? 1 : 0.5)
-                .opacity(showFirstDot ? 1 : 0.5)
-            
-            Circle()
-                .frame(width: 4, height: 4)
-                .scaleEffect(showSecondDot ? 1 : 0.5)
-                .opacity(showSecondDot ? 1 : 0.5)
-            
-            Circle()
-                .frame(width: 4, height: 4)
-                .scaleEffect(showThirdDot ? 1 : 0.5)
-                .opacity(showThirdDot ? 1 : 0.5)
+            Circle().frame(width: 4, height: 4).scaleEffect(showFirstDot ? 1 : 0.5).opacity(showFirstDot ? 1 : 0.5)
+            Circle().frame(width: 4, height: 4).scaleEffect(showSecondDot ? 1 : 0.5).opacity(showSecondDot ? 1 : 0.5)
+            Circle().frame(width: 4, height: 4).scaleEffect(showThirdDot ? 1 : 0.5).opacity(showThirdDot ? 1 : 0.5)
         }
         .foregroundColor(.gray)
-        .onAppear {
-            startAnimation()
-        }
+        .onAppear { startAnimation() }
     }
     
     func startAnimation() {
-        withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) {
-            showFirstDot = true
-        }
-        
+        withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) { showFirstDot = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) {
-                showSecondDot = true
-            }
+            withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) { showSecondDot = true }
         }
-        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) {
-                showThirdDot = true
-            }
+            withAnimation(Animation.easeInOut(duration: 0.3).repeatForever(autoreverses: true)) { showThirdDot = true }
         }
     }
 }
