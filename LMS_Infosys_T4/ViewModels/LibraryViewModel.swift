@@ -11,6 +11,16 @@ struct BookIssue: Identifiable, Codable {
     let isReturned: Bool
 }
 
+struct Fine: Identifiable, Codable {
+    let id: String
+    let userId: String
+    let bookId: String
+    let issueId: String
+    let fineAmount: Double
+    let imposedDate: Date
+    let isPaid: Bool
+}
+
 class LibraryViewModel: ObservableObject {
     @Published var books: [Book] = []
     @Published var isLoading = false
@@ -375,7 +385,7 @@ class LibraryViewModel: ObservableObject {
         // Commit all changes
         try await batch.commit()
     }
-
+    
     func rejectBookRequest(_ request: BookRequest) async throws {
         let db = Firestore.firestore()
         
@@ -653,6 +663,23 @@ class LibraryViewModel: ObservableObject {
             throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
         
+        // Get the librarian document to find which library they're assigned to
+        let librarianDoc = try await db.collection("librarians").document(currentUser.uid).getDocument()
+        
+        guard let librarianData = librarianDoc.data(),
+              let libraryID = librarianData["libraryID"] as? String else {
+            throw NSError(domain: "LibraryError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User is not a librarian or not assigned to any library"])
+        }
+        
+        // Fetch the library document to get the fine amount
+        let libraryRef = db.collection("libraries").document(libraryID)
+        let libraryDocument = try await libraryRef.getDocument()
+        
+        guard let libraryData = libraryDocument.data(),
+              let fineAmountPerDay = libraryData["finePerDay"] as? Double else {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid library data or fine amount not found."])
+        }
+        
         // Get the book issue document
         let issuesSnapshot = try await db.collection("bookIssues")
             .whereField("bookId", isEqualTo: bookCopyID)
@@ -665,6 +692,17 @@ class LibraryViewModel: ObservableObject {
         let issueData = issueDocument.data()
         let bookId = issueData["bookId"] as? String ?? ""
         let userId = issueData["userId"] as? String ?? ""
+        let dueDate = (issueData["dueDate"] as? Timestamp)?.dateValue() ?? Date()
+        let returnDate = Date()
+        
+        // Calculate fine if the book is returned after the due date
+        var fineAmount: Double = 0.0
+        if returnDate > dueDate {
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.day], from: dueDate, to: returnDate)
+            let daysOverdue = components.day ?? 0
+            fineAmount = Double(daysOverdue) * fineAmountPerDay
+        }
         
         // Extract main book ID from the copy ID
         let bookIDComponents = bookId.split(separator: "-")
@@ -682,7 +720,7 @@ class LibraryViewModel: ObservableObject {
         // Update book issue status to returned
         batch.updateData([
             "isReturned": true,
-            "returnDate": Timestamp(date: Date())
+            "returnDate": Timestamp(date: returnDate)
         ], forDocument: issueDocument.reference)
         
         // Update book copy status to available
@@ -691,8 +729,124 @@ class LibraryViewModel: ObservableObject {
         // Increment availableCopies in the books collection
         batch.updateData(["availableCopies": FieldValue.increment(Int64(1))], forDocument: bookRef)
         
+        // If there's a fine, add it to the fines collection
+        if fineAmount > 0 {
+            let fineRef = db.collection("fines").document()
+            let fineData: [String: Any] = [
+                "id": fineRef.documentID,
+                "userId": userId,
+                "bookId": bookId,
+                "issueId": issueDocument.documentID,
+                "fineAmount": fineAmount,
+                "imposedDate": Timestamp(date: returnDate),
+                "isPaid": false
+            ]
+            batch.setData(fineData, forDocument: fineRef)
+        }
+        
         // Commit all changes
         try await batch.commit()
+    }
+    
+//    func returnBook(bookCopyID: String) async throws {
+//        let db = Firestore.firestore()
+//        
+//        // Get the current librarian ID
+//        guard let currentUser = Auth.auth().currentUser else {
+//            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+//        }
+//        
+//        // Get the book issue document
+//        let issuesSnapshot = try await db.collection("bookIssues")
+//            .whereField("bookId", isEqualTo: bookCopyID)
+//            .getDocuments()
+//        
+//        guard let issueDocument = issuesSnapshot.documents.first else {
+//            throw NSError(domain: "LibraryError", code: 404, userInfo: [NSLocalizedDescriptionKey: "No book issue found for this copy."])
+//        }
+//        
+//        let issueData = issueDocument.data()
+//        let bookId = issueData["bookId"] as? String ?? ""
+//        let userId = issueData["userId"] as? String ?? ""
+//        let dueDate = (issueData["dueDate"] as? Timestamp)?.dateValue() ?? Date()
+//        let returnDate = Date()
+//        
+//        // Calculate fine if the book is returned after the due date
+//        var fineAmount: Double = 0.0
+//        if returnDate > dueDate {
+//            let calendar = Calendar.current
+//            let components = calendar.dateComponents([.day], from: dueDate, to: returnDate)
+//            let daysOverdue = components.day ?? 0
+//            fineAmount = Double(daysOverdue) * 5 // Example: $0.50 per day
+//        }
+//        
+//        // Extract main book ID from the copy ID
+//        let bookIDComponents = bookId.split(separator: "-")
+//        guard bookIDComponents.count >= 2,
+//              let mainBookID = bookIDComponents.first else {
+//            throw NSError(domain: "BookError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book ID format"])
+//        }
+//        
+//        let bookRef = db.collection("books").document(String(mainBookID))
+//        let bookCopyRef = bookRef.collection("bookCopies").document(bookId)
+//        
+//        // Create a batch to handle all updates
+//        let batch = db.batch()
+//        
+//        // Update book issue status to returned
+//        batch.updateData([
+//            "isReturned": true,
+//            "returnDate": Timestamp(date: returnDate)
+//        ], forDocument: issueDocument.reference)
+//        
+//        // Update book copy status to available
+//        batch.updateData(["status": "available"], forDocument: bookCopyRef)
+//        
+//        // Increment availableCopies in the books collection
+//        batch.updateData(["availableCopies": FieldValue.increment(Int64(1))], forDocument: bookRef)
+//        
+//        // If there's a fine, add it to the fines collection
+//        if fineAmount > 0 {
+//            let fineRef = db.collection("fines").document()
+//            let fineData: [String: Any] = [
+//                "id": fineRef.documentID,
+//                "userId": userId,
+//                "bookId": bookId,
+//                "issueId": issueDocument.documentID,
+//                "fineAmount": fineAmount,
+//                "imposedDate": Timestamp(date: returnDate),
+//                "isPaid": false
+//            ]
+//            batch.setData(fineData, forDocument: fineRef)
+//        }
+//        
+//        // Commit all changes
+//        try await batch.commit()
+//    }
+    
+    func fetchFines(for userId: String? = nil) async throws -> [Fine] {
+        let db = Firestore.firestore()
+        
+        var query: Query = db.collection("fines")
+        
+        if let userId = userId {
+            query = query.whereField("userId", isEqualTo: userId)
+        }
+        
+        let snapshot = try await query.getDocuments()
+        
+        return snapshot.documents.compactMap { document in
+            try? document.data(as: Fine.self)
+        }
+    }
+    
+    func markFineAsPaid(fineId: String) async throws {
+        let db = Firestore.firestore()
+        let fineRef = db.collection("fines").document(fineId)
+        
+        try await fineRef.updateData([
+            "isPaid": true
+        ])
     }
     
     // Add this function to the LibraryViewModel class
