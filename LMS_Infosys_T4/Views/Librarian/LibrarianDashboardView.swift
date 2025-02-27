@@ -36,69 +36,60 @@ struct StatisticCard: View {
         .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
     }
 }
-
-// Book List Item Component
 struct BookListItemView: View {
     let book: Book
+    @ObservedObject var viewModel: LibraryViewModel // Add this line
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Book cover image or placeholder
-            if let coverImage = book.getCoverImage() {
-                Image(uiImage: coverImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 60, height: 80)
-                    .cornerRadius(6)
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.3))
-                    .frame(width: 60, height: 80)
-                    .cornerRadius(6)
-                    .overlay(
-                        Image(systemName: "book.closed")
-                            .foregroundColor(.gray)
-                    )
-            }
-            
-            // Book details
-            VStack(alignment: .leading, spacing: 4) {
-                Text(book.title)
-                    .font(.headline)
-                    .lineLimit(1)
+        NavigationLink(destination: LibrarianBookDetailsView(book: book, viewModel: viewModel)) {
+            HStack(spacing: 16) {
+                // Book cover image or placeholder
+                if let coverImage = book.getCoverImage() {
+                    Image(uiImage: coverImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 60, height: 80)
+                        .cornerRadius(6)
+                } else {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 60, height: 80)
+                        .cornerRadius(6)
+                        .overlay(
+                            Image(systemName: "book.closed")
+                                .foregroundColor(.gray)
+                        )
+                }
                 
-                Text(book.author)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-                
-                HStack {
-                    //                    Text(book.genre)
-                    //                        .font(.caption)
-                    //                        .padding(.horizontal, 8)
-                    //                        .padding(.vertical, 3)
-                    //                        .background(Color.blue.opacity(0.1))
-                    //                        .cornerRadius(4)
-                    //
-                    //                    Spacer()
+                // Book details
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(book.title)
+                        .font(.headline)
+                        .lineLimit(1)
                     
-                    // Availability badge
-                    Text(book.availabilityStatus.description)
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(availabilityColor(status: book.availabilityStatus).opacity(0.1))
-                        .foregroundColor(availabilityColor(status: book.availabilityStatus))
-                        .cornerRadius(4)
+                    Text(book.author)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                    
+                    HStack {
+                        // Availability badge
+                        Text(book.availabilityStatus.description)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(availabilityColor(status: book.availabilityStatus).opacity(0.1))
+                            .foregroundColor(availabilityColor(status: book.availabilityStatus))
+                            .cornerRadius(4)
+                    }
                 }
             }
+            .padding()
+            .background(Color(.systemBackground))
+            .cornerRadius(8)
+            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(8)
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
-    
     
     // Helper function to get color based on availability status
     private func availabilityColor(status: AvailabilityStatus) -> Color {
@@ -112,7 +103,6 @@ struct BookListItemView: View {
         }
     }
 }
-
 
 struct LibrarianDashboardView: View {
     @StateObject private var viewModel = LibraryViewModel()
@@ -143,10 +133,6 @@ struct LibrarianDashboardView: View {
                             .foregroundColor(.secondary)
                         
                         VStack(alignment: .leading, spacing: 16) {
-                            //                            Text("Recently Added Books")
-                            //                                .font(.headline)
-                            //                                .foregroundColor(.secondary)
-                            
                             SearchBar(text: $searchText, placeholder: "Search books...")
                             
                             if viewModel.isLoading {
@@ -159,7 +145,7 @@ struct LibrarianDashboardView: View {
                                 .padding()
                             } else {
                                 ForEach(filteredBooks) { book in
-                                    BookListItemView(book: book)
+                                    BookListItemView(book: book, viewModel: viewModel) // Pass the viewModel here
                                 }
                             }
                         }
@@ -196,19 +182,15 @@ struct LibrarianDashboardView: View {
                 Label("Requests", systemImage: "doc.text.fill")
             }
             
-//            NavigationView {
-                ReturnBookView(viewModel: viewModel)
-//            }
-            .tabItem {
-                Label("Return", image: "custom.text.book.closed.fill.badge.arrow.up")
-            }
+            ReturnBookView(viewModel: viewModel)
+                .tabItem {
+                    Label("Return", image: "custom.text.book.closed.fill.badge.arrow.up")
+                }
             
-//            NavigationView {
-                LibrarianProfileView()
-//            }
-            .tabItem {
-                Label("Profile", systemImage: "person.fill")
-            }
+            LibrarianProfileView()
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
         }
     }
     
@@ -224,7 +206,6 @@ struct LibrarianDashboardView: View {
         }
     }
 }
-
 #Preview {
     LibrarianDashboardView()
 }

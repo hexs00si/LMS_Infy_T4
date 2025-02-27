@@ -2,6 +2,14 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 
+struct BookIssue: Identifiable, Codable {
+    let id: String
+    let userId: String
+    let bookId: String
+    let issueDate: Date
+    let dueDate: Date
+    let isReturned: Bool
+}
 
 class LibraryViewModel: ObservableObject {
     @Published var books: [Book] = []
@@ -72,9 +80,48 @@ class LibraryViewModel: ObservableObject {
         }
     }
     
+    func updateBookQuantity(bookID: String, newQuantity: Int) async throws {
+        let db = Firestore.firestore()
+        let bookRef = db.collection("books").document(bookID)
+        
+        // Fetch the current book document
+        let bookDocument = try await bookRef.getDocument()
+        
+        // Ensure the document exists and contains the required fields
+        guard let bookData = bookDocument.data(),
+              let currentQuantity = bookData["quantity"] as? Int,
+              let libraryID = bookData["libraryID"] as? String else {
+            throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid book data."])
+        }
+        
+        // Calculate the difference in quantity
+        let quantityDifference = newQuantity - currentQuantity
+        
+        // Update the book quantity
+        try await bookRef.updateData([
+            "quantity": newQuantity
+        ])
+        
+        // Add new copies if the quantity has increased
+        if quantityDifference > 0 {
+            for copyNumber in (currentQuantity + 1)...newQuantity {
+                let barcode = generateBarcode(bookID: bookID, copyNumber: copyNumber)
+                let copyRef = bookRef.collection("bookCopies").document(barcode)
+                
+                let copyData: [String: Any] = [
+                    "barcode": barcode,
+                    "status": "available",
+                    "libraryID": libraryID // Use the libraryID from the book data
+                ]
+                
+                try await copyRef.setData(copyData)
+            }
+        }
+    }
+    
     func fetchPendingBookRequests() async throws {
-//        isLoading = true
-//        error = nil
+        //        isLoading = true
+        //        error = nil
         await MainActor.run {
             isLoading = true
             error = nil
@@ -205,7 +252,7 @@ class LibraryViewModel: ObservableObject {
         // Commit batch
         try await batch.commit()
     }
-
+    
     private func generateBarcode(bookID: String, copyNumber: Int) -> String {
         // Generate a unique barcode using book ID and copy number
         // You can customize this format according to your needs
@@ -292,7 +339,7 @@ class LibraryViewModel: ObservableObject {
         guard let availableCopies = bookDocument.data()?["availableCopies"] as? Int else {
             throw NSError(domain: "LibraryError", code: 400, userInfo: [NSLocalizedDescriptionKey: "Invalid availableCopies field."])
         }
-
+        
         // Increment bookIssueCount in the books collection
         batch.updateData([
             "bookIssueCount": FieldValue.increment(Int64(1))
@@ -623,50 +670,50 @@ class LibraryViewModel: ObservableObject {
     
     
     func addToWishlist(book: Book) async throws {
-       guard let userId = Auth.auth().currentUser?.uid else {
-           throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-       }
-
-       let db = Firestore.firestore()
-       let wishlistRef = db.collection("members").document(userId).collection("wishlist").document(book.id!)
-
-       let wishlistData: [String: Any] = [
-           "addedOn": Timestamp(date: Date())
-       ]
-
-       try await wishlistRef.setData(wishlistData)
-   }
-
-   func markAsCurrentlyReading(book: Book) async throws {
-       guard let userId = Auth.auth().currentUser?.uid else {
-           throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-       }
-
-       let db = Firestore.firestore()
-       let currentlyReadingRef = db.collection("members").document(userId).collection("currentlyReading").document(book.id!)
-
-       let currentlyReadingData: [String: Any] = [
-           "addedOn": Timestamp(date: Date()),
-           "progress": 0 // Initial progress
-       ]
-
-       try await currentlyReadingRef.setData(currentlyReadingData)
-   }
-
-   func markAsCompleted(book: Book) async throws {
-       guard let userId = Auth.auth().currentUser?.uid else {
-           throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
-       }
-
-       let db = Firestore.firestore()
-       let alreadyReadRef = db.collection("members").document(userId).collection("alreadyRead").document(book.id!)
-
-       let alreadyReadData: [String: Any] = [
-           "addedOn": Timestamp(date: Date()),
-           "rating": 0 // Initial rating, can be updated later
-       ]
-
-       try await alreadyReadRef.setData(alreadyReadData)
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        let db = Firestore.firestore()
+        let wishlistRef = db.collection("members").document(userId).collection("wishlist").document(book.id!)
+        
+        let wishlistData: [String: Any] = [
+            "addedOn": Timestamp(date: Date())
+        ]
+        
+        try await wishlistRef.setData(wishlistData)
+    }
+    
+    func markAsCurrentlyReading(book: Book) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        let db = Firestore.firestore()
+        let currentlyReadingRef = db.collection("members").document(userId).collection("currentlyReading").document(book.id!)
+        
+        let currentlyReadingData: [String: Any] = [
+            "addedOn": Timestamp(date: Date()),
+            "progress": 0 // Initial progress
+        ]
+        
+        try await currentlyReadingRef.setData(currentlyReadingData)
+    }
+    
+    func markAsCompleted(book: Book) async throws {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
+        }
+        
+        let db = Firestore.firestore()
+        let alreadyReadRef = db.collection("members").document(userId).collection("alreadyRead").document(book.id!)
+        
+        let alreadyReadData: [String: Any] = [
+            "addedOn": Timestamp(date: Date()),
+            "rating": 0 // Initial rating, can be updated later
+        ]
+        
+        try await alreadyReadRef.setData(alreadyReadData)
     }
     
     // Fetch books from the user's wishlist
@@ -674,10 +721,10 @@ class LibraryViewModel: ObservableObject {
         guard let userId = Auth.auth().currentUser?.uid else {
             throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
-
+        
         let wishlistRef = db.collection("members").document(userId).collection("wishlist")
         let snapshot = try await wishlistRef.getDocuments()
-
+        
         var books: [Book] = []
         for document in snapshot.documents {
             let bookId = document.documentID
@@ -687,19 +734,19 @@ class LibraryViewModel: ObservableObject {
                 books.append(book)
             }
         }
-
+        
         return books
-     }
-
+    }
+    
     // Fetch books from the user's currentlyReading collection
     func fetchCurrentlyReadingBooks() async throws -> [Book] {
         guard let userId = Auth.auth().currentUser?.uid else {
             throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
-
+        
         let currentlyReadingRef = db.collection("members").document(userId).collection("currentlyReading")
         let snapshot = try await currentlyReadingRef.getDocuments()
-
+        
         var books: [Book] = []
         for document in snapshot.documents {
             let bookId = document.documentID
@@ -709,19 +756,19 @@ class LibraryViewModel: ObservableObject {
                 books.append(book)
             }
         }
-
+        
         return books
-     }
-
+    }
+    
     // Fetch books from the user's alreadyRead collection
     func fetchAlreadyReadBooks() async throws -> [Book] {
         guard let userId = Auth.auth().currentUser?.uid else {
             throw NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "No user is currently logged in"])
         }
-
+        
         let alreadyReadRef = db.collection("members").document(userId).collection("alreadyRead")
         let snapshot = try await alreadyReadRef.getDocuments()
-
+        
         var books: [Book] = []
         for document in snapshot.documents {
             let bookId = document.documentID
@@ -731,17 +778,28 @@ class LibraryViewModel: ObservableObject {
                 books.append(book)
             }
         }
-
+        
         return books
-     }
-
+    }
+    
     // Fetch all books (for reserved and other sections)
     func fetchAllBooks() async throws -> [Book] {
         let snapshot = try await db.collection("books").getDocuments()
         return snapshot.documents.compactMap { document in
             try? document.data(as: Book.self)
         }
-     }
+    }
+    
+    func fetchIssuedBooks(for bookID: String) async throws -> [BookIssue] {
+        let db = Firestore.firestore()
+        let issuesSnapshot = try await db.collection("bookIssues")
+            .whereField("bookId", isEqualTo: bookID)
+            .getDocuments()
+        
+        return issuesSnapshot.documents.compactMap { document in
+            try? document.data(as: BookIssue.self)
+        }
+    }
 }
 
 
