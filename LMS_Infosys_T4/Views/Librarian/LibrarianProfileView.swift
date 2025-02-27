@@ -18,10 +18,19 @@ struct LibrarianProfileView: View {
     @State private var finePerDay: Int = 0
     @State private var maxBooksPerUser: Int = 0
     @State private var lastUpdated: String = ""
+    @State private var libraryID: String = ""
     
     @State private var showingSignOutConfirmation = false
     @State private var showingResetPasswordAlert = false
     @State private var resetPasswordMessage: String = ""
+    
+    @State private var showingCSVDownloadAlert = false
+    @State private var csvDownloadMessage: String = ""
+    @State private var isDownloading: Bool = false
+    
+    @State private var showingBooksIDCSVDownloadAlert = false
+    @State private var booksIDCSVDownloadMessage: String = ""
+    @State private var isDownloadingBooksID: Bool = false
     
     var body: some View {
         NavigationView {
@@ -88,6 +97,38 @@ struct LibrarianProfileView: View {
                 
                 Section {
                     Button(action: {
+                        showingCSVDownloadAlert = true
+                    }) {
+                        HStack {
+                            Text("Download Books CSV")
+                                .foregroundColor(.blue)
+                            
+                            if isDownloading {
+                                Spacer()
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(isDownloading)
+                    
+                    Button(action: {
+                        showingBooksIDCSVDownloadAlert = true
+                    }) {
+                        HStack {
+                            Text("Download Books ID CSV")
+                                .foregroundColor(.blue)
+                            
+                            if isDownloadingBooksID {
+                                Spacer()
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(isDownloadingBooksID)
+                }
+                
+                Section {
+                    Button(action: {
                         showingResetPasswordAlert = true
                     }) {
                         Text("Reset Password")
@@ -125,6 +166,214 @@ struct LibrarianProfileView: View {
             } message: {
                 Text(resetPasswordMessage)
             }
+            .alert("Download Books CSV", isPresented: $showingCSVDownloadAlert) {
+                Button("Download", action: downloadCSV)
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("A CSV file with all books in your library will be generated and downloaded.")
+            }
+            .alert("CSV Download", isPresented: .constant(!csvDownloadMessage.isEmpty)) {
+                Button("OK", role: .cancel) {
+                    csvDownloadMessage = "" // Clear the message after showing
+                }
+            } message: {
+                Text(csvDownloadMessage)
+            }
+            .alert("Download Books ID CSV", isPresented: $showingBooksIDCSVDownloadAlert) {
+                Button("Download", action: downloadBooksIDCSV)
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("A CSV file with all book IDs and ISBNs in your library will be generated and downloaded.")
+            }
+            .alert("Books ID CSV Download", isPresented: .constant(!booksIDCSVDownloadMessage.isEmpty)) {
+                Button("OK", role: .cancel) {
+                    booksIDCSVDownloadMessage = "" // Clear the message after showing
+                }
+            } message: {
+                Text(booksIDCSVDownloadMessage)
+            }
+        }
+    }
+    
+    func downloadCSV() {
+        guard !libraryID.isEmpty else {
+            csvDownloadMessage = "Error: Library ID not found. Please try again."
+            return
+        }
+        
+        isDownloading = true
+        
+        Task {
+            do {
+                let csvData = try await generateBooksCSVData()
+                let csvURL = try saveCSVToFile(csvData: csvData)
+                
+                // Switch to main thread for UI operations
+                await MainActor.run {
+                    shareCSVFile(csvURL: csvURL)
+                    isDownloading = false
+                }
+            } catch {
+                await MainActor.run {
+                    csvDownloadMessage = "Error downloading CSV: \(error.localizedDescription)"
+                    isDownloading = false
+                }
+            }
+        }
+    }
+    
+    func generateBooksCSVData() async throws -> String {
+        // Get the books for the current library
+        guard !libraryID.isEmpty else {
+            throw NSError(domain: "LibraryError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Library ID not found"])
+        }
+        
+        let db = Firestore.firestore()
+        let booksCollection = db.collection("books").whereField("libraryID", isEqualTo: libraryID)
+        let booksSnapshot = try await booksCollection.getDocuments()
+        
+        // CSV Header - updated to match your actual Firestore fields
+        var csvString = "Title,Author,ISBN,Genre,Publish Year,Description,Available Copies,Quantity,Status\n"
+        
+        // Add each book as a row
+        for document in booksSnapshot.documents {
+            let bookData = document.data()
+            
+            let title = bookData["title"] as? String ?? ""
+            let author = bookData["author"] as? String ?? ""
+            let isbn = bookData["isbn"] as? String ?? ""
+            let genre = bookData["genre"] as? String ?? ""
+            let publishYear = bookData["publishYear"] as? Int ?? 0
+            let description = bookData["description"] as? String ?? ""
+            let availableCopies = bookData["availableCopies"] as? Int ?? 0
+            let quantity = bookData["quantity"] as? Int ?? 0
+            let status = bookData["availabilityStatus"] as? Int ?? 0
+            
+            // Escape any commas in string fields with quotes
+            let escapedTitle = escapeCSVField(title)
+            let escapedAuthor = escapeCSVField(author)
+            let escapedGenre = escapeCSVField(genre)
+            let escapedDescription = escapeCSVField(description)
+            
+            csvString += "\(escapedTitle),\(escapedAuthor),\(isbn),\(escapedGenre),\(publishYear),\(escapedDescription),\(availableCopies),\(quantity),\(status)\n"
+        }
+        
+        return csvString
+    }
+    
+    func downloadBooksIDCSV() {
+        guard !libraryID.isEmpty else {
+            booksIDCSVDownloadMessage = "Error: Library ID not found. Please try again."
+            return
+        }
+        
+        isDownloadingBooksID = true
+        
+        Task {
+            do {
+                let csvData = try await generateBooksIDCSVData()
+                let csvURL = try saveCSVToFile(csvData: csvData)
+                
+                // Switch to main thread for UI operations
+                await MainActor.run {
+                    shareCSVFile(csvURL: csvURL)
+                    isDownloadingBooksID = false
+                }
+            } catch {
+                await MainActor.run {
+                    booksIDCSVDownloadMessage = "Error downloading Books ID CSV: \(error.localizedDescription)"
+                    isDownloadingBooksID = false
+                }
+            }
+        }
+    }
+    
+    func generateBooksIDCSVData() async throws -> String {
+        // Get the books for the current library
+        guard !libraryID.isEmpty else {
+            throw NSError(domain: "LibraryError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Library ID not found"])
+        }
+        
+        let db = Firestore.firestore()
+        let booksCollection = db.collection("books").whereField("libraryID", isEqualTo: libraryID)
+        let booksSnapshot = try await booksCollection.getDocuments()
+        
+        // CSV Header
+        var csvString = "ISBN,Book ID\n"
+        
+        // Add each book and its copies as rows
+        for document in booksSnapshot.documents {
+            let bookData = document.data()
+            
+            // Get the ISBN from the main book document
+            let isbn = bookData["isbn"] as? String ?? ""
+            
+            // Get the book ID (main document ID)
+            let bookID = document.documentID
+            
+            // Fetch the bookCopies subcollection for this book
+            let copiesCollection = db.collection("books").document(bookID).collection("bookCopies")
+            let copiesSnapshot = try await copiesCollection.getDocuments()
+            
+            // Add each copy as a row in the CSV
+            for copyDocument in copiesSnapshot.documents {
+                let copyID = copyDocument.documentID
+                csvString += "\(isbn),\(copyID)\n"
+            }
+        }
+        
+        return csvString
+    }
+    
+    // Helper function to escape CSV fields with quotes if they contain commas
+    func escapeCSVField(_ field: String) -> String {
+        if field.contains(",") {
+            return "\"\(field)\""
+        }
+        return field
+    }
+    
+    func saveCSVToFile(csvData: String) throws -> URL {
+        let fileManager = FileManager.default
+        let tempDirectoryURL = fileManager.temporaryDirectory
+        let fileURL = tempDirectoryURL.appendingPathComponent("library_books.csv")
+        
+        try csvData.write(to: fileURL, atomically: true, encoding: .utf8)
+        
+        // Debug prints
+        print("CSV file saved at: \(fileURL)")
+        print("File exists: \(FileManager.default.fileExists(atPath: fileURL.path))")
+        print("File size: \(try? FileManager.default.attributesOfItem(atPath: fileURL.path)[.size] as? Int ?? 0) bytes")
+        
+        return fileURL
+    }
+    
+    func shareCSVFile(csvURL: URL) {
+        // Create a UIActivityViewController to handle sharing
+        let activityVC = UIActivityViewController(
+            activityItems: [csvURL],
+            applicationActivities: nil
+        )
+        
+        // Present the share sheet
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else {
+            print("Failed to get root view controller")
+            csvDownloadMessage = "Error: Could not display share options"
+            return
+        }
+        
+        // For iPad support
+        if let popoverController = activityVC.popoverPresentationController {
+            popoverController.sourceView = rootVC.view
+            popoverController.sourceRect = CGRect(x: UIScreen.main.bounds.midX, y: UIScreen.main.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+        }
+        
+        DispatchQueue.main.async {
+            rootVC.present(activityVC, animated: true) {
+                print("Activity view controller presented successfully")
+            }
         }
     }
     
@@ -140,6 +389,8 @@ struct LibrarianProfileView: View {
                 
                 // Fetch library details
                 if let libraryID = data?["libraryID"] as? String {
+                    self.libraryID = libraryID // Store the library ID
+                    
                     db.collection("libraries").document(libraryID).getDocument { libraryDocument, libraryError in
                         if let libraryDocument = libraryDocument, libraryDocument.exists {
                             let libraryData = libraryDocument.data()
