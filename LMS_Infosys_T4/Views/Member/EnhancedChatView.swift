@@ -80,7 +80,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             .shadow(color: Color.black.opacity(0.05), radius: 2)
             
             // Language and Speech indicators
@@ -115,7 +115,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 6)
-            .background(Color.white)
+            .background(Color(.systemBackground))
             
             // Messages
             ScrollViewReader { scrollView in
@@ -178,7 +178,7 @@ struct EnhancedChatView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 10)
-            .background(Color.white)
+            .background(Color(.systemBackground))
         }
         .onAppear {
             // Focus the input when the view appears

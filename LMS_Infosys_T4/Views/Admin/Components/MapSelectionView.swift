@@ -122,7 +122,7 @@ struct MapSelectionView: View {
                                     Image(systemName: "location.fill")
                                         .foregroundColor(.blue)
                                         .padding(12)
-                                        .background(Color.white)
+                                        .background(Color(.systemBackground))
                                         .clipShape(Circle())
                                         .shadow(color: Color.black.opacity(0.2), radius: 4, x: 0, y: 2)
                                 }
