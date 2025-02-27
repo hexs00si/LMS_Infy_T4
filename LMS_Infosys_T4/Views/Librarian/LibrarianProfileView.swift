@@ -4,6 +4,7 @@
 //
 //  Created by Gaganveer Bawa on 27/02/25.
 //
+
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
@@ -26,6 +27,10 @@ struct LibrarianProfileView: View {
     @State private var showingCSVDownloadAlert = false
     @State private var csvDownloadMessage: String = ""
     @State private var isDownloading: Bool = false
+    
+    @State private var showingBooksIDCSVDownloadAlert = false
+    @State private var booksIDCSVDownloadMessage: String = ""
+    @State private var isDownloadingBooksID: Bool = false
     
     var body: some View {
         NavigationView {
@@ -105,6 +110,21 @@ struct LibrarianProfileView: View {
                         }
                     }
                     .disabled(isDownloading)
+                    
+                    Button(action: {
+                        showingBooksIDCSVDownloadAlert = true
+                    }) {
+                        HStack {
+                            Text("Download Books ID CSV")
+                                .foregroundColor(.blue)
+                            
+                            if isDownloadingBooksID {
+                                Spacer()
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(isDownloadingBooksID)
                 }
                 
                 Section {
@@ -158,6 +178,19 @@ struct LibrarianProfileView: View {
                 }
             } message: {
                 Text(csvDownloadMessage)
+            }
+            .alert("Download Books ID CSV", isPresented: $showingBooksIDCSVDownloadAlert) {
+                Button("Download", action: downloadBooksIDCSV)
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("A CSV file with all book IDs and ISBNs in your library will be generated and downloaded.")
+            }
+            .alert("Books ID CSV Download", isPresented: .constant(!booksIDCSVDownloadMessage.isEmpty)) {
+                Button("OK", role: .cancel) {
+                    booksIDCSVDownloadMessage = "" // Clear the message after showing
+                }
+            } message: {
+                Text(booksIDCSVDownloadMessage)
             }
         }
     }
@@ -227,6 +260,71 @@ struct LibrarianProfileView: View {
         
         return csvString
     }
+    
+    func downloadBooksIDCSV() {
+        guard !libraryID.isEmpty else {
+            booksIDCSVDownloadMessage = "Error: Library ID not found. Please try again."
+            return
+        }
+        
+        isDownloadingBooksID = true
+        
+        Task {
+            do {
+                let csvData = try await generateBooksIDCSVData()
+                let csvURL = try saveCSVToFile(csvData: csvData)
+                
+                // Switch to main thread for UI operations
+                await MainActor.run {
+                    shareCSVFile(csvURL: csvURL)
+                    isDownloadingBooksID = false
+                }
+            } catch {
+                await MainActor.run {
+                    booksIDCSVDownloadMessage = "Error downloading Books ID CSV: \(error.localizedDescription)"
+                    isDownloadingBooksID = false
+                }
+            }
+        }
+    }
+    
+    func generateBooksIDCSVData() async throws -> String {
+        // Get the books for the current library
+        guard !libraryID.isEmpty else {
+            throw NSError(domain: "LibraryError", code: 404, userInfo: [NSLocalizedDescriptionKey: "Library ID not found"])
+        }
+        
+        let db = Firestore.firestore()
+        let booksCollection = db.collection("books").whereField("libraryID", isEqualTo: libraryID)
+        let booksSnapshot = try await booksCollection.getDocuments()
+        
+        // CSV Header
+        var csvString = "ISBN,Book ID\n"
+        
+        // Add each book and its copies as rows
+        for document in booksSnapshot.documents {
+            let bookData = document.data()
+            
+            // Get the ISBN from the main book document
+            let isbn = bookData["isbn"] as? String ?? ""
+            
+            // Get the book ID (main document ID)
+            let bookID = document.documentID
+            
+            // Fetch the bookCopies subcollection for this book
+            let copiesCollection = db.collection("books").document(bookID).collection("bookCopies")
+            let copiesSnapshot = try await copiesCollection.getDocuments()
+            
+            // Add each copy as a row in the CSV
+            for copyDocument in copiesSnapshot.documents {
+                let copyID = copyDocument.documentID
+                csvString += "\(isbn),\(copyID)\n"
+            }
+        }
+        
+        return csvString
+    }
+    
     // Helper function to escape CSV fields with quotes if they contain commas
     func escapeCSVField(_ field: String) -> String {
         if field.contains(",") {
