@@ -11,6 +11,7 @@ import FirebaseFirestore
 struct CreateUserAccountView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     @State private var name = ""
     @State private var email = ""
@@ -116,11 +117,11 @@ struct CreateUserAccountView: View {
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     }
                     Text(isLoading ? "Processing..." : "Create Account")
-                        .foregroundColor(.white)
+                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isLoading ? Color.gray : Color.black)
+                .background(isLoading ? Color.gray : (colorScheme == .dark ? Color.white : Color.black))
                 .cornerRadius(10)
             }
             .disabled(name.isEmpty || email.isEmpty || isLoading)

@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var showSignUp = false
     @State private var showInvalidLoginAlert = false
     @State private var isPasswordVisible = false
+    @Environment(\.colorScheme) var colorScheme
     
     @Binding var isUser: Bool
     
@@ -14,7 +15,7 @@ struct LoginView: View {
             Text(isUser ? "Member Sign In" : "Staff Sign In")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.black)
+//                .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Your Email")
@@ -67,10 +68,10 @@ struct LoginView: View {
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
                     Text("Sign in")
-                        .foregroundColor(.white)
+                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.black)
+                        .background(Color.primary)
                         .cornerRadius(10)
                 }
             }

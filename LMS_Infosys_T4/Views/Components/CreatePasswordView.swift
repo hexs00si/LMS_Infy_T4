@@ -10,7 +10,7 @@ import SwiftUI
 struct CreatePasswordView: View {
     let user: User
     let organizationID: String
-    
+    @Environment(\.colorScheme) var colorScheme
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var isPasswordVisible = false
@@ -43,7 +43,7 @@ struct CreatePasswordView: View {
             Text("Set Your Password")
                 .font(.largeTitle)
                 .fontWeight(.bold)
-                .foregroundColor(.black)
+//                .foregroundColor(.black)
             
             VStack(alignment: .leading, spacing: 5) {
                 Text("New Password")
@@ -146,8 +146,8 @@ struct CreatePasswordView: View {
                     Text("Confirm")
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(isSaveEnabled ? Color.black : Color.gray)
-                        .foregroundColor(.white)
+                        .background(isSaveEnabled ? (colorScheme == .dark ? Color.white : Color.black) : Color.gray)
+                        .foregroundColor(colorScheme == .dark ? Color.black : Color.white)
                         .cornerRadius(10)
                 }
             }
@@ -161,4 +161,8 @@ struct CreatePasswordView: View {
         }
         .padding()
     }
+}
+
+#Preview {
+    CreatePasswordView(user: User(id: "123", name: "Abc", email: "Abc", password: "Abc", gender: "Male", phoneNumber: "919191919191", joinDate: Date(), issuedBooks: [], currentlyIssuedCount: 0), organizationID: "")
 }

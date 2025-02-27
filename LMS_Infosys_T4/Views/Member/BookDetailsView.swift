@@ -141,6 +141,7 @@ struct ReserveButtonView: View {
     @Binding var isLoading: Bool
     @Binding var showAlert: Bool
     @Binding var alertMessage: String
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack {
@@ -176,8 +177,8 @@ struct ReserveButtonView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(book.availableCopies > 0 ? Color.black : Color.gray)
-                        .foregroundColor(.white)
+                        .background(book.availableCopies > 0 ? (colorScheme == .dark ? .white : .black) : Color.gray)
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
                         .cornerRadius(12)
                 }
             }

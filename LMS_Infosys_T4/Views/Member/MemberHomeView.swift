@@ -44,9 +44,9 @@ struct MemberHomeView: View {
                         Button(action: {
                             showingGenreFilter.toggle()
                         }) {
-                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            Image(systemName: "line.3.horizontal.decrease.circle")
                                 .font(.title2)
-                                .foregroundColor(.black)
+//                                .foregroundColor(.black)
                         }
                     }
                 )

@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct EnhancedChatView: View {
     @StateObject private var viewModel: EnhancedChatViewModel
     @Binding var isShowing: Bool
@@ -231,7 +229,7 @@ struct ChatBubble: View {
                         Text(message.content)
                             .padding(12)
                             .background(Color(.systemGray5))
-                            .foregroundColor(.black)
+//                            .foregroundColor(.black)
                             .cornerRadius(16)
                     }
                 }
