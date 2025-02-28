@@ -839,7 +839,7 @@ class LibraryViewModel: ObservableObject {
             try? document.data(as: Fine.self)
         }
     }
-    
+
     func markFineAsPaid(fineId: String) async throws {
         let db = Firestore.firestore()
         let fineRef = db.collection("fines").document(fineId)
@@ -1055,6 +1055,26 @@ class LibraryViewModel: ObservableObject {
         
         return issuesSnapshot.documents.compactMap { document in
             try? document.data(as: BookIssue.self)
+        }
+    }
+    func fetchUserName(for userId: String) async throws -> String {
+        let db = Firestore.firestore()
+        
+        // Reference the member document
+        let memberRef = db.collection("members").document(userId)
+        
+        do {
+            let memberDocument = try await memberRef.getDocument()
+            
+            // Ensure the document exists and contains the name field
+            guard let memberData = memberDocument.data(),
+                  let userName = memberData["name"] as? String else {
+                throw NSError(domain: "FirestoreError", code: 404, userInfo: [NSLocalizedDescriptionKey: "User not found or name not available"])
+            }
+            
+            return userName
+        } catch {
+            throw error
         }
     }
 }

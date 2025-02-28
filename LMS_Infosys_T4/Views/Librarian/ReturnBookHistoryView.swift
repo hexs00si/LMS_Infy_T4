@@ -16,6 +16,7 @@ struct ReturnBookHistoryView: View {
     @State private var returnedBooks: [ReturnedBookInfo] = []
     @State private var sortAscending = true
     @State private var showingReturnBookView = false
+    @State private var showingFinesView = false
     
     struct ReturnedBookInfo: Identifiable {
         let id: String
@@ -66,7 +67,6 @@ struct ReturnBookHistoryView: View {
                     ProgressView()
                         .scaleEffect(1.5)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.2))
                 }
             }
             .alert("Error", isPresented: $showError) {
@@ -102,6 +102,12 @@ struct ReturnBookHistoryView: View {
                         }
                     } label: {
                         Image(systemName: "arrow.up.arrow.down")
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: FinesView(viewModel: viewModel)) {
+                        Image(systemName: "indianrupeesign.arrow.trianglehead.counterclockwise.rotate.90")
                     }
                 }
             }
