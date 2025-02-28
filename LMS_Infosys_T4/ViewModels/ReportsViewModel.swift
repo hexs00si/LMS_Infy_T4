@@ -12,6 +12,9 @@ class ReportsViewModel: ObservableObject {
     @Published var topIssuedBooks: [Book] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var totalFinesCollected: Double = 0
+    @Published var totalFinesPending: Double = 0
+    @Published var totalBooks: Int = 0
     
     private let db = Firestore.firestore()
     
@@ -57,5 +60,41 @@ class ReportsViewModel: ObservableObject {
                     }
                 }
             }
+    }
+    
+    func fetchFinesSummary() {
+        isLoading = true
+        error = nil
+        
+        Task {
+            do {
+                // Fetch total fines collected
+                let collectedFinesSnapshot = try await db.collection("fines")
+                    .whereField("isPaid", isEqualTo: true)
+                    .getDocuments()
+                let collectedFines = collectedFinesSnapshot.documents.compactMap { document in
+                    try? document.data(as: Fine.self)
+                }
+                totalFinesCollected = collectedFines.reduce(0) { $0 + $1.fineAmount }
+                
+                // Fetch total fines pending
+                let pendingFinesSnapshot = try await db.collection("fines")
+                    .whereField("isPaid", isEqualTo: false)
+                    .getDocuments()
+                let pendingFines = pendingFinesSnapshot.documents.compactMap { document in
+                    try? document.data(as: Fine.self)
+                }
+                totalFinesPending = pendingFines.reduce(0) { $0 + $1.fineAmount }
+                
+                // Fetch total number of books across all libraries
+                let booksSnapshot = try await db.collection("books").getDocuments()
+                totalBooks = booksSnapshot.documents.count
+                
+                isLoading = false
+            } catch {
+                self.error = error.localizedDescription
+                isLoading = false
+            }
+        }
     }
 }
