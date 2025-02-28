@@ -11,7 +11,6 @@ struct AddLibraryView: View {
     @State private var finePerDay: Double = 1.0
     @State private var maxBooksPerUser = 5
     @State private var loanDuration = 14
-    @State private var showLibrarianSelection = false
     @State private var showLocationPicker = false
     @State private var showError = false
     @State private var errorMessage = ""
@@ -63,7 +62,7 @@ struct AddLibraryView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
                 
-                Section(header: Text("CONFIGURATION")) {
+                Section(header: Text("LIBRARY POLICIES")) {
                     HStack {
                         Text("₹")
                         TextField("", value: $finePerDay, format: .number)
@@ -75,16 +74,9 @@ struct AddLibraryView: View {
                     
                     Stepper("Maximum Books: \(maxBooksPerUser)", value: $maxBooksPerUser, in: 1...20)
                     
-                    // Added loan duration configuration
                     Stepper("Loan Duration: \(loanDuration) days", value: $loanDuration, in: 1...60)
                 }
-                
-                Section {
-                    NavigationLink("Select Librarians") {
-                        // We'll add librarian selection view later
-                        Text("Librarian Selection")
-                    }
-                }
+                // Removed the Librarian Selection Section
             }
             .navigationTitle("Add Library")
             .navigationBarItems(
@@ -120,7 +112,6 @@ struct AddLibraryView: View {
     }
     
     private func saveLibrary() {
-        // Use the custom location if provided, otherwise use the map location name
         let finalLocation = !customLocation.isEmpty ? customLocation : locationName
         
         guard let coordinates = selectedCoordinate else { return }
@@ -139,7 +130,7 @@ struct AddLibraryView: View {
                 longitude: coordinates.longitude,
                 finePerDay: Float(finePerDay),
                 maxBooksPerUser: maxBooksPerUser,
-                loanDuration: loanDuration // Add the loan duration parameter
+                loanDuration: loanDuration
             )
             dismiss()
         }
